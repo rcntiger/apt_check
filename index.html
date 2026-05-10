@@ -14,18 +14,25 @@
   --r:8px;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 header{padding:10px 16px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .logo{width:28px;height:28px;background:linear-gradient(135deg,#f59e0b,#ef4444);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
 h1{font-size:14px;font-weight:600}
 .badge{font-size:10px;padding:2px 8px;border-radius:20px}
 .badge.sub{background:rgba(47,129,247,.12);border:1px solid rgba(47,129,247,.3);color:var(--ac)}
 .badge.cnt{margin-left:auto;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--lo)}
-.layout{display:flex;flex:1;overflow:hidden}
+.layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .sidebar{width:300px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
-@media(max-width:600px){.layout{flex-direction:column}.sidebar{width:100%;height:50vh;border-right:none;border-bottom:1px solid var(--bd)}}
-.map-wrap{flex:1;position:relative}
-#map{width:100%;height:100%}
+@media(max-width:600px){
+  .layout{flex-direction:column;height:calc(100vh - 48px)}
+  .sidebar{width:100%;height:auto;max-height:42vh;border-right:none;border-bottom:1px solid var(--bd);overflow-y:auto;flex-shrink:0}
+  .map-wrap{flex:1;min-height:0}
+  #map{width:100%;height:100%;min-height:0}
+  .map-toolbar{top:6px;right:6px;gap:4px}
+  .tool-btn{padding:5px 9px;font-size:11px}
+}
+.map-wrap{flex:1;position:relative;min-height:0}
+#map{width:100%;height:100%;min-height:0}
 .map-ph{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mt);font-size:13px}
 .map-ph .big{font-size:36px;opacity:.25}
 .panel{padding:10px 12px;border-bottom:1px solid var(--bd)}
