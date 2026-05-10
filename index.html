@@ -36,6 +36,12 @@ h1{font-size:14px;font-weight:600}
 .map-ph{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mt);font-size:13px}
 .map-ph .big{font-size:36px;opacity:.25}
 .panel{padding:10px 12px;border-bottom:1px solid var(--bd)}
+.panel-toggle{width:100%;background:none;border:none;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;margin-bottom:7px}
+.panel-toggle .ptitle{margin-bottom:0}
+.panel-toggle .arrow{font-size:11px;color:var(--mt);transition:transform .2s;display:inline-block}
+.panel-toggle .arrow.open{transform:rotate(180deg)}
+.panel-body{overflow:hidden;transition:max-height .25s ease}
+.panel-body.collapsed{max-height:0!important}
 .ptitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);margin-bottom:7px}
 .key-row{display:flex;gap:6px;align-items:center;margin-bottom:5px}
 .key-row label{font-size:11px;color:var(--mt);width:48px;flex-shrink:0}
@@ -131,21 +137,25 @@ h1{font-size:14px;font-weight:600}
 </header>
 <div class="layout">
   <div class="sidebar">
-    <div class="panel">
-      <div class="ptitle">🔑 Kakao API 키</div>
-      <div class="key-row"><label>JS 키</label><input type="text" id="jsKey" placeholder="JavaScript 키"></div>
-      <div class="key-row"><label>REST 키</label><input type="text" id="restKey" placeholder="REST API 키"></div>
-      <button class="go-btn" id="goBtn" onclick="startLoad()">🗺️ 지도에 표시</button>
-      <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
-      <div class="pglabel" id="pgLabel"></div>
-    </div>
-
-    <div class="panel" id="statsPanel" style="display:none">
-      <div class="stats-row">
-        <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
-        <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
-        <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
-        <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
+    <div class="panel" id="apiPanel">
+      <button class="panel-toggle" onclick="toggleApiPanel()">
+        <span class="ptitle">🔑 Kakao API 키 &amp; 현황</span>
+        <span class="arrow open" id="apiArrow">▼</span>
+      </button>
+      <div class="panel-body" id="apiBody" style="max-height:300px">
+        <div class="key-row"><label>JS 키</label><input type="text" id="jsKey" placeholder="JavaScript 키"></div>
+        <div class="key-row"><label>REST 키</label><input type="text" id="restKey" placeholder="REST API 키"></div>
+        <button class="go-btn" id="goBtn" onclick="startLoad()">🗺️ 지도에 표시</button>
+        <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
+        <div class="pglabel" id="pgLabel"></div>
+        <div id="statsInner" style="display:none;margin-top:8px">
+          <div class="stats-row">
+            <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
+            <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
+            <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
+            <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -348,14 +358,14 @@ async function startLoad() {
   document.getElementById('goBtn').disabled=true;
   document.getElementById('pgWrap').style.display='block';
   document.getElementById('pgLabel').style.display='block';
-  document.getElementById('statsPanel').style.display='block';
+  document.getElementById('statsInner').style.display='block';
   document.getElementById('listEl').innerHTML='';
   try { await initKakaoMap(jsKey); }
   catch(e) {
     document.getElementById('goBtn').disabled=false;
     document.getElementById('pgWrap').style.display='none';
     document.getElementById('pgLabel').style.display='none';
-    document.getElementById('statsPanel').style.display='none';
+    document.getElementById('statsInner').style.display='none';
     showDiag(e.message); return;
   }
   const cache=loadCache();
@@ -386,6 +396,15 @@ async function startLoad() {
   applyFilter();
   fitAll();
   showToast(`완료 ✓ ${ok}개 성공 / ${fail}개 실패`,ok>fail?'ok':'err');
+  // 완료 후 자동으로 패널 접기 (지도 공간 확보)
+  const body = document.getElementById('apiBody');
+  const arrow = document.getElementById('apiArrow');
+  body.style.maxHeight = body.scrollHeight + 'px';
+  requestAnimationFrame(()=>{
+    body.style.maxHeight='0';
+    body.classList.add('collapsed');
+    arrow.classList.remove('open');
+  });
 }
 
 // ── 마커 ──
@@ -632,6 +651,24 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
 // 초기화
+function toggleApiPanel() {
+  const body = document.getElementById('apiBody');
+  const arrow = document.getElementById('apiArrow');
+  const isOpen = !body.classList.contains('collapsed');
+  if (isOpen) {
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      body.style.maxHeight = '0';
+      body.classList.add('collapsed');
+      arrow.classList.remove('open');
+    });
+  } else {
+    body.classList.remove('collapsed');
+    body.style.maxHeight = '300px';
+    arrow.classList.add('open');
+  }
+}
+
 window.addEventListener('DOMContentLoaded',()=>{
   updateCounts();
   updateDoneCount();
