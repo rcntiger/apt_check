@@ -194,6 +194,18 @@ h1{font-size:14px;font-weight:600}
       <div>API 키 입력 후 버튼을 눌러주세요</div>
     </div>
     <div id="map"></div>
+    <!-- 진단 패널 -->
+    <div id="diagPanel" style="display:none;position:absolute;inset:0;background:var(--bg);flex-direction:column;padding:24px;gap:0;align-items:center;justify-content:center">
+      <div style="background:var(--sur);border:1px solid rgba(255,123,114,.3);border-radius:14px;padding:24px 28px;max-width:480px;width:100%">
+        <div id="diagTitle" style="font-size:15px;font-weight:700;color:var(--hi);margin-bottom:10px"></div>
+        <div id="diagDesc" style="font-size:13px;color:var(--mt);margin-bottom:16px;line-height:1.6"></div>
+        <div style="background:var(--sur2);border-radius:8px;padding:14px 16px;font-size:12px;line-height:2;color:var(--tx)" id="diagFix"></div>
+        <div style="margin-top:14px;padding:10px 12px;background:rgba(47,129,247,.08);border:1px solid rgba(47,129,247,.2);border-radius:8px;font-size:11px;color:var(--mt)">
+          현재 접속 주소: <code style="color:var(--ac)" id="diagOrigin"></code>
+        </div>
+        <button onclick="document.getElementById('diagPanel').style.display='none'" style="margin-top:12px;width:100%;padding:8px;background:var(--sur2);border:1px solid var(--bd2);border-radius:8px;color:var(--mt);cursor:pointer;font-size:12px">닫기</button>
+      </div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -283,23 +295,52 @@ function saveCache(c){ try{localStorage.setItem(CACHE_KEY,JSON.stringify(c))}cat
 function initKakaoMap(jsKey) {
   if (kakaoMap) return Promise.resolve();
   return new Promise((resolve, reject) => {
+    // 10초 타임아웃: 도메인 미등록 시 kakao.maps.load 콜백이 호출되지 않음
+    const timer = setTimeout(() => reject(new Error('TIMEOUT')), 10000);
+
     const s = document.createElement('script');
     s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false`;
-    s.onerror = () => reject(new Error('JS 키 오류 또는 도메인 미등록'));
+    s.onerror = () => { clearTimeout(timer); reject(new Error('SCRIPT_LOAD')); };
     s.onload = () => {
-      kakao.maps.load(() => {
-        try {
-          document.getElementById('mapPh').style.display = 'none';
-          kakaoMap = new kakao.maps.Map(document.getElementById('map'), {
-            center: new kakao.maps.LatLng(37.463, 126.900),
-            level: 5
-          });
-          resolve();
-        } catch(e) { reject(e); }
-      });
+      try {
+        kakao.maps.load(() => {
+          clearTimeout(timer);
+          try {
+            document.getElementById('mapPh').style.display = 'none';
+            kakaoMap = new kakao.maps.Map(document.getElementById('map'), {
+              center: new kakao.maps.LatLng(37.463, 126.900), level: 5
+            });
+            resolve();
+          } catch(e) { reject(new Error('MAP_CREATE')); }
+        });
+      } catch(e) { clearTimeout(timer); reject(new Error('SDK_LOAD')); }
     };
     document.head.appendChild(s);
   });
+}
+
+function showDiag(code) {
+  const origin = location.origin;
+  const msgs = {
+    'TIMEOUT': {
+      title: '도메인 미등록',
+      desc: 'Kakao 개발자 콘솔에 현재 접속 주소가 등록되지 않아 지도가 로딩되지 않습니다.',
+      fix: '1. <a href="https://developers.kakao.com" target="_blank" style="color:var(--ac)">developers.kakao.com</a> 접속<br>2. 내 애플리케이션 → 앱 선택<br>3. 앱 설정 → 플랫폼 → Web<br>4. 사이트 도메인에 아래 주소 추가 후 저장<br>5. 저장 후 이 페이지 새로고침'
+    },
+    'SCRIPT_LOAD': {
+      title: 'JavaScript 키 오류',
+      desc: 'JS 키가 잘못되었습니다. REST 키와 JS 키는 다릅니다.',
+      fix: '1. <a href="https://developers.kakao.com" target="_blank" style="color:var(--ac)">developers.kakao.com</a> → 내 애플리케이션<br>2. 앱 키 탭 → <b>JavaScript 키</b> 복사<br>3. JS 키 입력란에 붙여넣기 후 다시 시도'
+    },
+    'MAP_CREATE': { title: '지도 생성 실패', desc: '지도 컨테이너 오류입니다.', fix: '페이지를 새로고침 후 다시 시도하세요.' },
+    'SDK_LOAD':   { title: 'SDK 초기화 실패', desc: '카카오 SDK 초기화 중 오류가 발생했습니다.', fix: '페이지를 새로고침 후 다시 시도하세요.' },
+  };
+  const m = msgs[code] || { title: '오류: ' + code, desc: '', fix: '페이지를 새로고침하세요.' };
+  document.getElementById('diagTitle').textContent = '⚠️ ' + m.title;
+  document.getElementById('diagDesc').textContent = m.desc;
+  document.getElementById('diagFix').innerHTML = m.fix;
+  document.getElementById('diagOrigin').textContent = origin;
+  document.getElementById('diagPanel').style.display = 'flex';
 }
 
 // ── 메인 ──
@@ -321,8 +362,11 @@ async function startLoad() {
   try {
     await initKakaoMap(jsKey);
   } catch(e) {
-    showToast('지도 로딩 실패: ' + e.message, 'err');
     document.getElementById('goBtn').disabled = false;
+    document.getElementById('pgWrap').style.display = 'none';
+    document.getElementById('pgLabel').style.display = 'none';
+    document.getElementById('statsPanel').style.display = 'none';
+    showDiag(e.message);
     return;
   }
 
