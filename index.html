@@ -3,16 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>금천구 아파트 조사 대상</title>
+<title>아파트 점검 지도</title>
 <style>
-:root{
-  --bg:#0d1117;--sur:#161b22;--sur2:#21262d;
-  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.14);
-  --tx:#e6edf3;--mt:#7d8590;
-  --ac:#2f81f7;--hi:#ff7b72;--lo:#3fb950;
-  --t1:#f59e0b;--t2:#ef4444;--t3:#a78bfa;
-  --r:8px;
-}
+:root{--bg:#0d1117;--sur:#161b22;--sur2:#21262d;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.14);--tx:#e6edf3;--mt:#7d8590;--ac:#2f81f7;--hi:#ff7b72;--lo:#3fb950;--t1:#3b82f6;--t2:#ef4444;--t3:#a78bfa;--r:8px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 header{padding:10px 16px;background:var(--sur);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0}
@@ -23,26 +16,15 @@ h1{font-size:14px;font-weight:600}
 .badge.cnt{margin-left:auto;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--lo)}
 .layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .sidebar{width:300px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
-@media(max-width:600px){
-  .layout{flex-direction:column;height:calc(100vh - 48px)}
-  .sidebar{width:100%;height:auto;max-height:42vh;border-right:none;border-bottom:1px solid var(--bd);overflow-y:auto;flex-shrink:0}
-  .map-wrap{flex:1;min-height:0}
-  #map{width:100%;height:100%;min-height:0}
-  .map-toolbar{top:6px;right:6px;gap:4px}
-  .tool-btn{padding:5px 9px;font-size:11px}
-}
+@media(max-width:600px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;max-height:44vh;border-right:none;border-bottom:1px solid var(--bd);overflow-y:auto;flex-shrink:0}.map-wrap{flex:1;min-height:0}#map{width:100%;height:100%}.map-toolbar{top:6px;right:6px;gap:4px}.tool-btn{padding:5px 9px;font-size:11px}}
 .map-wrap{flex:1;position:relative;min-height:0}
 #map{width:100%;height:100%;min-height:0}
 .map-ph{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mt);font-size:13px}
 .map-ph .big{font-size:36px;opacity:.25}
 .panel{padding:10px 12px;border-bottom:1px solid var(--bd)}
+.ptitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);margin-bottom:7px}
 .panel-toggle{width:100%;background:none;border:none;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;margin-bottom:7px}
 .panel-toggle .ptitle{margin-bottom:0}
-.panel-toggle .arrow{font-size:11px;color:var(--mt);transition:transform .2s;display:inline-block}
-.panel-toggle .arrow.open{transform:rotate(180deg)}
-.panel-body{overflow:hidden;transition:max-height .25s ease}
-.panel-body.collapsed{max-height:0!important}
-.ptitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);margin-bottom:7px}
 .key-row{display:flex;gap:6px;align-items:center;margin-bottom:5px}
 .key-row label{font-size:11px;color:var(--mt);width:48px;flex-shrink:0}
 .key-row input{flex:1;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:6px 8px;font-size:11px;font-family:monospace;outline:none}
@@ -53,18 +35,14 @@ h1{font-size:14px;font-weight:600}
 .pgwrap{height:3px;background:var(--sur2);border-radius:2px;overflow:hidden;margin-top:7px;display:none}
 .pgfill{height:100%;background:var(--ac);border-radius:2px;transition:width .1s;width:0}
 .pglabel{font-size:10px;color:var(--mt);margin-top:4px;text-align:center;display:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stats-row{display:flex;gap:4px}
+.stats-row{display:flex;gap:4px;margin-top:8px}
 .stat{flex:1;background:var(--sur2);border-radius:6px;padding:6px 4px;text-align:center}
 .stat .n{font-size:14px;font-weight:700}
 .stat .l{font-size:9px;color:var(--mt);margin-top:1px}
 .filter-row{display:flex;gap:5px;flex-wrap:wrap}
 .fbtn{padding:4px 9px;border-radius:20px;border:1px solid var(--bd2);background:var(--sur2);color:var(--mt);font-size:11px;cursor:pointer;transition:all .12s;user-select:none}
 .fbtn.active{color:#fff;border-color:transparent}
-.fall.active{background:var(--ac)}
-.ft1.active{background:var(--t1);color:#111}
-.ft2.active{background:var(--t2)}
-.ft3.active{background:var(--t3)}
-.fd.active{background:var(--dc,var(--ac))}
+.fall.active{background:var(--ac)}.ft1.active{background:var(--t1);color:#fff}.ft2.active{background:var(--t2)}.ft3.active{background:var(--t3)}.fd.active{background:var(--dc,var(--ac))}
 .dcnt{opacity:.7;font-size:10px;margin-left:1px}
 .search-wrap input{width:100%;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:7px 9px;font-size:12px;outline:none}
 .search-wrap input:focus{border-color:var(--ac)}
@@ -83,49 +61,32 @@ h1{font-size:14px;font-weight:600}
 .isub{font-size:10px;color:var(--mt);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tags{margin-top:3px;display:flex;gap:3px;flex-wrap:wrap}
 .itag{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600}
-.itag.t1{background:rgba(245,158,11,.15);color:var(--t1)}
-.itag.t2{background:rgba(239,68,68,.15);color:var(--t2)}
-.itag.t3{background:rgba(167,139,250,.15);color:var(--t3)}
-.itag.err{background:rgba(255,123,114,.1);color:var(--hi)}
-.itag.dong{background:rgba(255,255,255,.07);color:var(--mt)}
+.itag.t1{background:rgba(245,158,11,.15);color:var(--t1)}.itag.t2{background:rgba(239,68,68,.15);color:var(--t2)}.itag.t3{background:rgba(167,139,250,.15);color:var(--t3)}
+.itag.err{background:rgba(255,123,114,.1);color:var(--hi)}.itag.dong{background:rgba(255,255,255,.07);color:var(--mt)}
 .done-badge{display:none;font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(34,197,94,.15);color:#22c55e;font-weight:600}
+.map-toolbar{position:absolute;top:10px;right:10px;z-index:9999;display:none;flex-direction:column;gap:6px;pointer-events:auto}
+.tool-btn{padding:7px 12px;border:1px solid var(--bd2);border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;background:var(--sur);color:var(--tx);box-shadow:0 2px 8px rgba(0,0,0,.4);white-space:nowrap;pointer-events:auto;position:relative;z-index:9999}
+.tool-btn:hover{background:var(--sur2)}
+.tool-btn.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tool-btn.on-rv{background:#22c55e;color:#fff;border-color:#22c55e}
+.dist-info{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);padding:8px 16px;font-size:12px;z-index:9999;display:none;box-shadow:0 4px 12px rgba(0,0,0,.5);text-align:center;white-space:nowrap}
+.dist-info span{color:var(--ac);font-weight:700;font-size:14px}
+.rv-panel{position:absolute;inset:0;z-index:200;display:none;flex-direction:column}
+.rv-header{background:var(--sur);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#rvMap{flex:1}
+.mob-toggle{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--ac);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+@media(max-width:600px){.mob-toggle{display:block}}
+@media(max-width:600px){.sidebar.map-mode{display:none!important}.map-wrap.list-mode{display:none!important}}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);padding:9px 14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:9999;transform:translateY(50px);opacity:0;transition:all .25s;max-width:280px}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-color:var(--lo)}.toast.err{border-color:var(--hi)}
 .kk-marker{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.6);cursor:pointer;transition:all .2s}
-/* 지도 툴바 */
-.map-toolbar{position:absolute;top:10px;right:10px;z-index:100;display:flex;flex-direction:column;gap:6px}
-.tool-btn{padding:7px 12px;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;background:var(--sur);color:var(--tx);border:1px solid var(--bd2);box-shadow:0 2px 8px rgba(0,0,0,.4);transition:all .15s;white-space:nowrap}
-.tool-btn:hover{background:var(--sur2)}
-.tool-btn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
-.tool-btn.active-rv{background:#22c55e;color:#fff;border-color:#22c55e}
-/* 거리재기 안내 */
-.dist-info{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);padding:8px 16px;font-size:12px;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.5);text-align:center}
-.dist-info span{color:var(--ac);font-weight:700;font-size:14px}
-/* 로드뷰 패널 */
-.rv-panel{position:absolute;inset:0;z-index:200;display:none;flex-direction:column}
-.rv-header{background:var(--sur);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
-.rv-title{font-size:13px;font-weight:600;flex:1}
-.rv-close{background:none;border:none;color:var(--mt);cursor:pointer;font-size:18px;line-height:1}
-#rvMap{flex:1}
+.kk-marker.active-mk{width:18px!important;height:18px!important;border:3px solid #fff!important;box-shadow:0 0 0 3px rgba(255,255,255,.5),0 3px 10px rgba(0,0,0,.7)!important;z-index:999!important;transform:scale(1)}
 .kk-marker:hover{transform:scale(1.5)}
-.kk-marker.t1{background:var(--t1)}
-.kk-marker.t2{background:var(--t2)}
-.kk-marker.t3{background:var(--t3)}
-.kk-marker.done{background:#22c55e !important;width:13px !important;height:13px !important}
-/* 진단 패널 */
+.kk-marker.t1{background:var(--t1)}.kk-marker.t2{background:var(--t2)}.kk-marker.t3{background:var(--t3)}
+.kk-marker.done{background:#22c55e!important;width:13px!important;height:13px!important}
 #diagPanel{display:none;position:absolute;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px}
 .diag-box{background:var(--sur);border:1px solid rgba(255,123,114,.35);border-radius:14px;padding:24px 28px;max-width:460px;width:100%}
-.diag-title{font-size:15px;font-weight:700;color:var(--hi);margin-bottom:10px}
-.diag-desc{font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.6}
-.diag-fix{background:var(--sur2);border-radius:8px;padding:14px 16px;font-size:12px;line-height:2.2;color:var(--tx)}
-.diag-origin{margin-top:12px;padding:10px 14px;background:rgba(47,129,247,.08);border:1px solid rgba(47,129,247,.2);border-radius:8px;font-size:11px;color:var(--mt)}
-.diag-close{margin-top:12px;width:100%;padding:9px;background:var(--sur2);border:1px solid var(--bd2);border-radius:8px;color:var(--mt);cursor:pointer;font-size:12px}
-/* 완료버튼 */
-.complete-btn{width:100%;margin-top:10px;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:#22c55e;color:#fff}
-.complete-btn:hover{background:#16a34a}
-.complete-btn.undone{background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0}
-.complete-btn.undone:hover{background:#fee2e2;color:#ef4444;border-color:#fca5a5}
 </style>
 </head>
 <body>
@@ -137,18 +98,18 @@ h1{font-size:14px;font-weight:600}
 </header>
 <div class="layout">
   <div class="sidebar">
-    <div class="panel" id="apiPanel">
+    <div class="panel">
       <button class="panel-toggle" onclick="toggleApiPanel()">
         <span class="ptitle">🔑 Kakao API 키 &amp; 현황</span>
-        <span class="arrow open" id="apiArrow">▼</span>
+        <span id="apiArrow" style="font-size:11px;color:var(--mt);transition:transform .2s;display:inline-block">▼</span>
       </button>
-      <div class="panel-body" id="apiBody" style="max-height:300px">
-        <div class="key-row"><label>JS 키</label><input type="text" id="jsKey" placeholder="JavaScript 키"></div>
-        <div class="key-row"><label>REST 키</label><input type="text" id="restKey" placeholder="REST API 키"></div>
+      <div id="apiBody" style="max-height:300px;overflow:hidden;transition:max-height .25s ease">
+        <div class="key-row"><label>JS 키</label><input type="text" id="jsKey"></div>
+        <div class="key-row"><label>REST 키</label><input type="text" id="restKey"></div>
         <button class="go-btn" id="goBtn" onclick="startLoad()">🗺️ 지도에 표시</button>
         <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
         <div class="pglabel" id="pgLabel"></div>
-        <div id="statsInner" style="display:none;margin-top:8px">
+        <div id="statsInner" style="display:none">
           <div class="stats-row">
             <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
             <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
@@ -158,7 +119,6 @@ h1{font-size:14px;font-weight:600}
         </div>
       </div>
     </div>
-
     <div class="panel">
       <div class="ptitle">📍 행정동</div>
       <div class="filter-row">
@@ -167,191 +127,223 @@ h1{font-size:14px;font-weight:600}
         <span class="fbtn fd" id="dbtn-가산동" onclick="toggleDong('가산동')" style="--dc:#34d399">가산동 <span class="dcnt" id="dcnt-가산동"></span></span>
       </div>
     </div>
-
     <div class="panel">
       <div class="ptitle">👥 조사팀</div>
       <div class="filter-row">
         <span class="fbtn fall active" id="tbtn-all" onclick="toggleTeam('all')">전체</span>
-        <span class="fbtn ft1" id="tbtn-1팀" onclick="toggleTeam('1팀')">🟡 1팀 <span class="dcnt" id="tcnt-1팀"></span></span>
+        <span class="fbtn ft1" id="tbtn-1팀" onclick="toggleTeam('1팀')">🔵 1팀 <span class="dcnt" id="tcnt-1팀"></span></span>
         <span class="fbtn ft2" id="tbtn-2팀" onclick="toggleTeam('2팀')">🔴 2팀 <span class="dcnt" id="tcnt-2팀"></span></span>
         <span class="fbtn ft3" id="tbtn-3팀" onclick="toggleTeam('3팀')">🟣 3팀 <span class="dcnt" id="tcnt-3팀"></span></span>
       </div>
     </div>
-
     <div class="panel">
       <div class="ptitle">🔍 검색</div>
       <div class="search-wrap"><input type="text" id="searchInput" placeholder="단지명 검색..." oninput="applyFilter()"></div>
     </div>
-
     <div class="list" id="listEl">
-      <div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">
-        API 키 입력 후<br>[지도에 표시] 버튼을 누르세요<br>
-        <span style="font-size:10px;color:#444">167건 · 자동 캐싱</span>
-      </div>
+      <div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">API 키 입력 후<br>[지도에 표시] 버튼을 누르세요<br><span style="font-size:10px;color:#444">167건 · 자동 캐싱</span></div>
     </div>
   </div>
-
   <div class="map-wrap">
     <div class="map-ph" id="mapPh"><div class="big">🗺️</div><div>API 키 입력 후 버튼을 누르세요</div></div>
     <div id="map"></div>
-    <!-- 지도 툴바 -->
-    <div class="map-toolbar" id="mapToolbar" style="display:none">
+    <div class="map-toolbar" id="mapToolbar">
       <button class="tool-btn" id="btnDist" onclick="toggleDist()">📏 거리재기</button>
-      <button class="tool-btn" id="btnRv" onclick="openRvMode()">🔭 로드뷰</button>
-      <button class="tool-btn" id="btnDistClear" onclick="clearDist()" style="display:none;font-size:11px;color:var(--hi)">✕ 초기화</button>
+      <button class="tool-btn" id="btnRv" onclick="toggleRvMode()">🔭 로드뷰</button>
+      <button class="tool-btn" id="btnDistClear" onclick="clearDist()" style="display:none;font-size:11px;color:var(--hi)">✕ 거리초기화</button>
     </div>
-    <!-- 거리재기 안내 -->
-    <div class="dist-info" id="distInfo">
-      클릭: 측정점 추가 &nbsp;|&nbsp; 더블클릭: 완료<br>
-      총 거리: <span id="distVal">0</span> m
+      <div class="legend-row"><div class="legend-line" style="background:#ef4444"></div>통행 불가 (service/골목)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#f97316"></div>통행 불가 (생활도로)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#eab308"></div>확인 필요 (주택가 도로)</div>
+      <div class="legend-row"><div class="legend-line" style="background:#22c55e"></div>통행 가능 (주요 도로)</div>
     </div>
-    <!-- 로드뷰 패널 -->
+    <div class="dist-info" id="distInfo">클릭: 측정점 추가 &nbsp;|&nbsp; 더블클릭: 완료<br>총 거리: <span id="distVal">0</span></div>
     <div class="rv-panel" id="rvPanel">
       <div class="rv-header">
-        <span class="rv-title">🔭 로드뷰</span>
-        <span style="font-size:11px;color:var(--mt)" id="rvHint">지도에서 위치를 클릭하세요</span>
-        <button onclick="closeRv()" style="padding:6px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-left:auto">← 지도로 돌아가기</button>
+        <span style="font-size:13px;font-weight:600;flex:1">🔭 로드뷰</span>
+        <span style="font-size:11px;color:var(--mt)" id="rvHint"></span>
+        <button onclick="closeRv()" style="padding:6px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-left:12px">← 지도로 돌아가기</button>
       </div>
       <div id="rvMap"></div>
     </div>
     <div id="diagPanel">
       <div class="diag-box">
-        <div class="diag-title" id="diagTitle"></div>
-        <div class="diag-desc" id="diagDesc"></div>
-        <div class="diag-fix" id="diagFix"></div>
-        <div class="diag-origin">현재 접속 주소: <code style="color:var(--ac)" id="diagOrigin"></code></div>
-        <button class="diag-close" onclick="document.getElementById('diagPanel').style.display='none'">닫기</button>
+        <div style="font-size:15px;font-weight:700;color:var(--hi);margin-bottom:10px" id="diagTitle"></div>
+        <div style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.6" id="diagDesc"></div>
+        <div style="background:var(--sur2);border-radius:8px;padding:14px 16px;font-size:12px;line-height:2.2;color:var(--tx)" id="diagFix"></div>
+        <div style="margin-top:12px;padding:10px 14px;background:rgba(47,129,247,.08);border:1px solid rgba(47,129,247,.2);border-radius:8px;font-size:11px;color:var(--mt)">현재 주소: <code style="color:var(--ac)" id="diagOrigin"></code></div>
+        <button onclick="document.getElementById('diagPanel').style.display='none'" style="margin-top:12px;width:100%;padding:9px;background:var(--sur2);border:1px solid var(--bd2);border-radius:8px;color:var(--mt);cursor:pointer;font-size:12px">닫기</button>
       </div>
     </div>
   </div>
 </div>
+<button class="mob-toggle" id="mobToggle" onclick="toggleMobView()">🗺️ 지도 보기</button>
 <div class="toast" id="toast"></div>
 
 <script>
 const RAW = [{"seq": 16783, "team": "1팀", "name": "가산동 145-12(기숙사)", "dong": "가산동", "addr": "서울특별시 금천구 가산동  145-12", "addr_road": "남부순환로108길 23-5", "floors": "지상2", "buildings": 2, "grade": "low"}, {"seq": 16786, "team": "1팀", "name": "백운한비치아파트(가동)", "dong": "가산동", "addr": "서울특별시 금천구 가산동  145-29", "addr_road": "남부순환로108길 23-10 백운 한비치 아파트 가동)", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16784, "team": "1팀", "name": "백운한비치아파트(나동)", "dong": "가산동", "addr": "서울특별시 금천구 가산동  145-42", "addr_road": "남부순환로108길 23-14 백운한비치아파트 나동) 가동이랑 작동점검 같이 받음.", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16792, "team": "1팀", "name": "덕산아파트", "dong": "가산동", "addr": "서울특별시 금천구 가산동  148-1", "addr_road": "시흥대로151길 45 덕산아파트상가 010-3747-3949", "floors": "지상13", "buildings": 2, "grade": "mid"}, {"seq": 16866, "team": "1팀", "name": "가산동삼익아파트", "dong": "가산동", "addr": "서울특별시 금천구 가산동  234-46", "addr_road": "두산로9길 56 삼익아파트", "floors": "지상19", "buildings": 2, "grade": "mid"}, {"seq": 16850, "team": "1팀", "name": "드림캐슬아파트2차", "dong": "가산동", "addr": "서울특별시 금천구 가산동  235-13", "addr_road": "두산로9가길 30 드림캐슬 아파트 2차", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16766, "team": "1팀", "name": "드림캐슬아파트3차", "dong": "가산동", "addr": "서울특별시 금천구 가산동  237-81", "addr_road": "두산로3길 36-11 드림케슬 아파트3차", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16871, "team": "1팀", "name": "백운한비치아파트", "dong": "가산동", "addr": "서울특별시 금천구 가산동  238-4", "addr_road": "가산로7길 107 백운 한비치 아파트 202호 관리자 (010-9188-9119)", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16896, "team": "1팀", "name": "가산동두산위브아파트", "dong": "가산동", "addr": "서울특별시 금천구 가산동  769-0", "addr_road": "가산로 99 두산위브아파트", "floors": "지상25", "buildings": 18, "grade": "high"}, {"seq": 16916, "team": "1팀", "name": "온누리아파트", "dong": "가산동", "addr": "서울특별시 금천구 가산동  774-0", "addr_road": "벚꽃로24길 7 온누리아파트", "floors": "지상11", "buildings": 1, "grade": "mid"}, {"seq": 16815, "team": "1팀", "name": "금천 행복주택", "dong": "가산동", "addr": "서울특별시 금천구 가산동  779-0", "addr_road": "디지털로10길 55", "floors": "지상18", "buildings": 2, "grade": "mid"}, {"seq": 16852, "team": "1팀", "name": "제이파크빌", "dong": "가산동", "addr": "서울특별시 금천구 가산동 148-13", "addr_road": "시흥대로149가길 10-4", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16769, "team": "1팀", "name": "와이앤캐슬", "dong": "가산동", "addr": "서울특별시 금천구 가산동 148-38", "addr_road": "시흥대로149길 28", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16874, "team": "1팀", "name": "미라클", "dong": "가산동", "addr": "서울특별시 금천구 가산동 149-43", "addr_road": "시흥대로145길 60-2", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16865, "team": "1팀", "name": "덕산파크빌", "dong": "가산동", "addr": "서울특별시 금천구 가산동 235-17", "addr_road": "두산로9길 55", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16774, "team": "1팀", "name": "세명하이빌", "dong": "가산동", "addr": "서울특별시 금천구 가산동 239-19", "addr_road": "가산로9길 97-12", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16912, "team": "1팀", "name": "원평6차(신진순건물)", "dong": "가산동", "addr": "서울특별시 금천구 가산동 239-2", "addr_road": "벚꽃로24길 21 원평빌라트 6차)", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16895, "team": "1팀", "name": "상진아파트B동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1017-24", "addr_road": "시흥대로120길 44 독산동상진아파트B B동", "floors": "지상7", "buildings": 3, "grade": "low"}, {"seq": 16906, "team": "1팀", "name": "상진아파트A동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1017-8", "addr_road": "시흥대로120길 40 상진아파트A동", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16894, "team": "1팀", "name": "대덕트윈빌아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1028-0", "addr_road": "시흥대로112길 6 대덕트윈빌 비동", "floors": "지상13", "buildings": 3, "grade": "mid"}, {"seq": 16821, "team": "1팀", "name": "리치힐", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1052-5", "addr_road": "시흥대로100길 21-8 리치힐태흥아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16925, "team": "1팀", "name": "홍원 루미에르 금천2", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1061-18", "addr_road": "시흥대로90길 45", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16919, "team": "1팀", "name": "새롬빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1070-24 401호 010-3296-7547", "addr_road": "시흥대로84라길 13", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16923, "team": "1팀", "name": "독산첼시2 B동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1075-68", "addr_road": "시흥대로84나길 12", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16810, "team": "1팀", "name": "독산주공아파트13단지", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1088-1 1동~13동(광명), 14동~20동(금천) 소방안전관리자 광명소방서에 신고함", "addr_road": "한내로 69-15 주공아파트 광명과 경계중복(자체점검 및 안전관리자 광명소방서 소관)", "floors": "지상15", "buildings": 8, "grade": "mid"}, {"seq": 16802, "team": "1팀", "name": "한신아파트(독산한신아파트)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1095-0", "addr_road": "한내로 62 한신아파트 (독산동, 한신아파트)", "floors": "지상15", "buildings": 13, "grade": "mid"}, {"seq": 16768, "team": "1팀", "name": "서초파레스아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1141-0", "addr_road": "시흥대로128길 19 서초파레스아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16797, "team": "1팀", "name": "한양수자인아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1144-0", "addr_road": "시흥대로150길 6 한양수자인아파트", "floors": "지상15", "buildings": 5, "grade": "mid"}, {"seq": 16770, "team": "1팀", "name": "한아프라임아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  147-1", "addr_road": "시흥대로149길 39", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16806, "team": "1팀", "name": "한아프라임아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  147-76", "addr_road": "시흥대로151길 23 한아 프라임아파트", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16926, "team": "1팀", "name": "퍼스티아 101동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  149-45", "addr_road": "시흥대로141길 23", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16807, "team": "1팀", "name": "신도브레뉴아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  955-0", "addr_road": "시흥대로152길 25 신도브래뉴아파트", "floors": "지상19", "buildings": 4, "grade": "mid"}, {"seq": 16811, "team": "1팀", "name": "독산동삼익아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  956-0", "addr_road": "남부순환로120길 22 독산동삼익아파트", "floors": "지상12", "buildings": 2, "grade": "mid"}, {"seq": 16847, "team": "1팀", "name": "아이부키(주)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  964-42", "addr_road": "시흥대로150길 69 아이부키(주) 주택", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16798, "team": "1팀", "name": "예전이룸아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  965-1", "addr_road": "시흥대로150길 21-58 예전이룸아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16843, "team": "1팀", "name": "더마인드", "dong": "독산동", "addr": "서울특별시 금천구 독산동  985-30", "addr_road": "시흥대로144길 43", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16842, "team": "1팀", "name": "메트로벨리", "dong": "독산동", "addr": "서울특별시 금천구 독산동  986-8", "addr_road": "시흥대로144길 42 주택,점포", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16873, "team": "1팀", "name": "한아아파트 장미동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  987-11", "addr_road": "시흥대로144길 16 한아아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16830, "team": "1팀", "name": "한아아파트 해바라기동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  987-20", "addr_road": "시흥대로142길 15 한아아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16831, "team": "1팀", "name": "한아아파트무궁화동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  987-21", "addr_road": "시흥대로142길 11 한아아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16872, "team": "1팀", "name": "한아아파트 국화동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  987-22", "addr_road": "시흥대로144길 12 한아아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16829, "team": "1팀", "name": "덕산케슬", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1009-7", "addr_road": "시흥대로101길 30", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16918, "team": "1팀", "name": "우성 피렌체", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1057-19", "addr_road": "시흥대로96길 15 우성 피렌체 101동 101동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16917, "team": "1팀", "name": "롯데블루빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1058-1", "addr_road": "시흥대로94길 51-5", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16920, "team": "1팀", "name": "무송베스트빌(주택용SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1064-37", "addr_road": "시흥대로88가길 33 무송베스트빌", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16914, "team": "1팀", "name": "서래하우스(주택용SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1068-11", "addr_road": "시흥대로88길 14", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16801, "team": "1팀", "name": "독산주공아파트14단지", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1088-0", "addr_road": "한내로 69-54 독산주공아파트14단지", "floors": "지상15", "buildings": 6, "grade": "mid"}, {"seq": 16809, "team": "1팀", "name": "각산아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1093-5", "addr_road": "한내로 52 각산아파트", "floors": "지상12", "buildings": 1, "grade": "mid"}, {"seq": 16799, "team": "1팀", "name": "해바라기빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 147-74", "addr_road": "시흥대로151길 15", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16771, "team": "1팀", "name": "엘도라도3차(간이SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 198-6", "addr_road": "시흥대로130길 42", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16907, "team": "1팀", "name": "굿모닝파크빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 296-37", "addr_road": "시흥대로123길 46", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16812, "team": "1팀", "name": "월드힐아파트101(자진SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 958-0", "addr_road": "남부순환로120길 17 월드힐 아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16800, "team": "1팀", "name": "정우센스빌(독산동 967-1)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 967-1", "addr_road": "시흥대로152길 8", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16808, "team": "2팀", "name": "엠엘아트빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1020-13", "addr_road": "독산로 240-1 (독산동)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16819, "team": "2팀", "name": "설악솔내음아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1138-0", "addr_road": "독산로85길 7-8 설악솔내음아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16876, "team": "2팀", "name": "우리텔", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1157-0", "addr_road": "가산로3길 123 101동", "floors": "지상6", "buildings": 8, "grade": "low"}, {"seq": 16790, "team": "2팀", "name": "신독산솔리힐", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1161-0", "addr_road": "독산로54길 303 (독산동)", "floors": "지상7", "buildings": 2, "grade": "low"}, {"seq": 16816, "team": "2팀", "name": "아이유하임1차", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1162-0 독산동 990-12(대장상 없는 주소)", "addr_road": "독산로 293 (독산동)", "floors": "지상9", "buildings": 1, "grade": "low"}, {"seq": 16793, "team": "2팀", "name": "세심아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  181-139", "addr_road": "독산로80가길 29 세심아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16794, "team": "2팀", "name": "정심아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  182-1", "addr_road": "독산로80가길 26 정심아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16785, "team": "2팀", "name": "독산동아아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  183-1", "addr_road": "독산로78다길 52 독산동동아아파트", "floors": "지상13", "buildings": 1, "grade": "mid"}, {"seq": 16789, "team": "2팀", "name": "동심아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  184-4", "addr_road": "독산로78다길 12 동심아파트 소방안전관리자:한성진:010-3304-3652", "floors": "지상9", "buildings": 1, "grade": "low"}, {"seq": 16777, "team": "2팀", "name": "(주)공간하우스 건물", "dong": "독산동", "addr": "서울특별시 금천구 독산동  196-12", "addr_road": "독산로75길 28-3 (독산동)", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16849, "team": "2팀", "name": "동현하이츠 (독산동200-8외1 )", "dong": "독산동", "addr": "서울특별시 금천구 독산동  200-8", "addr_road": "가산로 31 (독산동)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16889, "team": "2팀", "name": "어반휴캐슬", "dong": "독산동", "addr": "서울특별시 금천구 독산동  234-20 * 2개동 지하층으로 연결", "addr_road": "독산로96길 31 어반휴캐슬 서울시 금천구 독산동 234-20", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16814, "team": "2팀", "name": "메이힐102동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  378-206", "addr_road": "독산로58다길 4 (독산동)", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16779, "team": "2팀", "name": "골드마운틴7", "dong": "독산동", "addr": "서울특별시 금천구 독산동  378-261", "addr_road": "독산로62길 8 (독산동)", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16924, "team": "2팀", "name": "리베로", "dong": "독산동", "addr": "서울특별시 금천구 독산동  378-485", "addr_road": "독산로56길 18-13", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16813, "team": "2팀", "name": "동양드림아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  378-77", "addr_road": "독산로58나길 56 동양드림아파트 독산동 378-78(관리자 303호 거주)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16898, "team": "2팀", "name": "서동에이스빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-25", "addr_road": "독산로102길 29 서동에이스빌 101동", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16902, "team": "2팀", "name": "신흥빌라3동(독산동891-12건물)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  891-12", "addr_road": "독산로102길 62", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16910, "team": "2팀", "name": "뜰안채", "dong": "독산동", "addr": "서울특별시 금천구 독산동  914-0 외 5필지", "addr_road": "독산로72길 70", "floors": "지상6", "buildings": 3, "grade": "low"}, {"seq": 16903, "team": "2팀", "name": "해찬아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  917-3", "addr_road": "독산로70길 103-16 해찬아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16904, "team": "2팀", "name": "독산동 972-16 외 1필지", "dong": "독산동", "addr": "서울특별시 금천구 독산동  972-16", "addr_road": "독산로99길 20", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16859, "team": "2팀", "name": "리치힐아파트106동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  976-37", "addr_road": "독산로92길 23 리치힐 아파트 106동 안전관리자 이름 박주희 010-3776-7981 106동 거주자", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16869, "team": "2팀", "name": "리치힐아파트105동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  976-6", "addr_road": "독산로92길 17 리치힐 아파트 105동", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16890, "team": "2팀", "name": "지안플러스", "dong": "독산동", "addr": "서울특별시 금천구 독산동  979-8", "addr_road": "독산로99길 33 (독산동)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16856, "team": "2팀", "name": "리치힐아파트103동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  992-0", "addr_road": "독산로92길 16 리치힐아파트", "floors": "지상7", "buildings": 2, "grade": "low"}, {"seq": 16857, "team": "2팀", "name": "세진웰빙타운102동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  992-37", "addr_road": "독산로92길 26 세진웰빙타운102동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16858, "team": "2팀", "name": "세진웰빙타운101동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  992-42", "addr_road": "독산로92길 30", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16860, "team": "2팀", "name": "리치힐아파트104동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  992-43", "addr_road": "독산로92길 20 리치힐아파트", "floors": "지상7", "buildings": 2, "grade": "low"}, {"seq": 16827, "team": "2팀", "name": "리치힐아파트101동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  993-25", "addr_road": "독산로88길 19 리치힐아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16839, "team": "2팀", "name": "리치힐아파트102동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  993-36", "addr_road": "독산로90길 18 리치힐아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16780, "team": "2팀", "name": "한아아파트101동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  994-33", "addr_road": "독산로84길 43 한아아파트101동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16781, "team": "2팀", "name": "한아아파트102동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  994-73", "addr_road": "독산로84길 45 한아아파트102동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16826, "team": "2팀", "name": "삼성로얄아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  994-76", "addr_road": "독산로88길 8 삼성빌라 입주대표 김경희(201호)010-4103-4690", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16787, "team": "2팀", "name": "영광아트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1043-48", "addr_road": "독산로51길 12 근린생활시설,다가구용단독주택(2가구)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16909, "team": "2팀", "name": "한백아트(주택용SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1046-22 1046-32", "addr_road": "독산로49길 26 한백아트빌", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16855, "team": "2팀", "name": "독산동 180-36", "dong": "독산동", "addr": "서울특별시 금천구 독산동 180-36", "addr_road": "독산로84길 50", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16788, "team": "2팀", "name": "아셈그린힐아파트(자진SP)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 184-3", "addr_road": "독산로78다길 22 아셈그린힐 010-8759-7379(안병석, 입주민대표)", "floors": "지상12", "buildings": 1, "grade": "mid"}, {"seq": 16853, "team": "2팀", "name": "호암빌(독산동 199-14)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 199-14 외 1필지(199-15)", "addr_road": "가산로 5", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16772, "team": "2팀", "name": "서래하우스 가동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 199-41", "addr_road": "가산로 17-1 이응경(관리자, 602호)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16773, "team": "2팀", "name": "서래하우스 나동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 199-5 외 1필지", "addr_road": "가산로 15", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16795, "team": "2팀", "name": "독산동 378-157", "dong": "독산동", "addr": "서울특별시 금천구 독산동 378-157", "addr_road": "독산로58길 46", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16796, "team": "2팀", "name": "한신빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 378-215", "addr_road": "독산로58길 36", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16804, "team": "2팀", "name": "파크힐", "dong": "독산동", "addr": "서울특별시 금천구 독산동 378-300", "addr_road": "독산로58길 14 파크힐 (독산동, 파크힐)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16803, "team": "2팀", "name": "덕진골드빌(독산동 378-314)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 378-314", "addr_road": "독산로58가길 24", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16805, "team": "2팀", "name": "명아트빌라(독산동 378-337)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 378-337", "addr_road": "독산로58나길 16", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16908, "team": "2팀", "name": "독산동 887-33", "dong": "독산동", "addr": "서울특별시 금천구 독산동 887-33", "addr_road": "독산로102길 19", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16901, "team": "2팀", "name": "독산동 891-15", "dong": "독산동", "addr": "서울특별시 금천구 독산동 891-15", "addr_road": "독산로102길 58", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16899, "team": "2팀", "name": "독산동 891-17", "dong": "독산동", "addr": "서울특별시 금천구 독산동 891-17", "addr_road": "독산로102길 64", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16900, "team": "2팀", "name": "신흥빌라3동(독산동 891-18)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 891-18", "addr_road": "독산로102길 68", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16776, "team": "2팀", "name": "평강 그린빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 898-7", "addr_road": "독산로108길 54", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16775, "team": "2팀", "name": "대성아트빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 899-13", "addr_road": "독산로108길 45", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16782, "team": "2팀", "name": "신영아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 901-17", "addr_road": "독산로108길 91 신영아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16897, "team": "2팀", "name": "엠코타운", "dong": "독산동", "addr": "서울특별시 금천구 독산동 962-5", "addr_road": "독산로101길 56 엠코타운 A동, B동", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16877, "team": "2팀", "name": "영모던빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 962-9", "addr_road": "독산로101길 52 영모던빌 (독산동, 영모던빌)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16879, "team": "2팀", "name": "동산아트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 974-10", "addr_road": "독산로94길 41", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16878, "team": "2팀", "name": "독산동 974-16", "dong": "독산동", "addr": "서울특별시 금천구 독산동 974-16", "addr_road": "독산로94길 29", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16840, "team": "2팀", "name": "독산동 976-33", "dong": "독산동", "addr": "서울특별시 금천구 독산동 976-33", "addr_road": "독산로92길 39", "floors": "지상5", "buildings": 1, "grade": "low"}, {"seq": 16868, "team": "2팀", "name": "리치힐 홈타운", "dong": "독산동", "addr": "서울특별시 금천구 독산동 977-17", "addr_road": "독산로92길 9 리치힐 홈타운", "floors": "지상6", "buildings": 4, "grade": "low"}, {"seq": 16825, "team": "2팀", "name": "독산동 991-22", "dong": "독산동", "addr": "서울특별시 금천구 독산동 991-22", "addr_road": "독산로86길 11", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16905, "team": "3팀", "name": "진도1차아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1002-0", "addr_road": "벚꽃로18길 36 진도아파트 야간 연락처->관리소장 개인번호", "floors": "지상9", "buildings": 2, "grade": "low"}, {"seq": 16862, "team": "3팀", "name": "독산동삼환아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1006-132", "addr_road": "범안로12길 15 삼환아파트", "floors": "지상13", "buildings": 1, "grade": "mid"}, {"seq": 16922, "team": "3팀", "name": "독산첼시2A동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1075-69", "addr_road": "", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16846, "team": "3팀", "name": "라이프아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1131-0", "addr_road": "벚꽃로 60", "floors": "지상19", "buildings": 1, "grade": "mid"}, {"seq": 16887, "team": "3팀", "name": "목화아파트101동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1132-0", "addr_road": "문성로3길 8 목화아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16913, "team": "3팀", "name": "진도2차아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1133-0", "addr_road": "두산로 36 진도아파트", "floors": "지상20", "buildings": 1, "grade": "high"}, {"seq": 16767, "team": "3팀", "name": "백운아파트(독산동)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1135-0", "addr_road": "범안로12길 47 백운아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16820, "team": "3팀", "name": "진도3차아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1136-0", "addr_road": "범안로17길 41 진도3차아파트", "floors": "지상18", "buildings": 1, "grade": "mid"}, {"seq": 16915, "team": "3팀", "name": "청광플러스원아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1139-0", "addr_road": "두산로11길 22 청광플러스원아파트 101동", "floors": "지상16", "buildings": 1, "grade": "mid"}, {"seq": 16921, "team": "3팀", "name": "독산동중앙하이츠아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1140-0", "addr_road": "범안로 1136 독산동중앙하이츠빌", "floors": "지상22", "buildings": 9, "grade": "high"}, {"seq": 16791, "team": "3팀", "name": "금천 이랜드 해가든아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1143-0", "addr_road": "벚꽃로6길 3 금천 이랜드 해가든 아파트", "floors": "지상25", "buildings": 6, "grade": "high"}, {"seq": 16845, "team": "3팀", "name": "금천 롯데캐슬 골드파크 1차 아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1147-0", "addr_road": "벚꽃로 40", "floors": "지상35", "buildings": 13, "grade": "high"}, {"seq": 16867, "team": "3팀", "name": "아이유하임2차(독산동 도시형생활주택)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1159-0", "addr_road": "두산로9길 23 아이유하임", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16844, "team": "3팀", "name": "독산역 롯데캐슬 아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  1160-0", "addr_road": "벚꽃로 100 독산역 롯데캐슬 오피스텔 관리사무소 벚꽃로104", "floors": "지상35", "buildings": 10, "grade": "high"}, {"seq": 16828, "team": "3팀", "name": "독산현대아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  293-10", "addr_road": "범안로17길 12 독산현대아파트 상가동)", "floors": "지상20", "buildings": 2, "grade": "high"}, {"seq": 16854, "team": "3팀", "name": "독산동계룡아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  332-14", "addr_road": "범안로15길 7 계룡아파트", "floors": "지상20", "buildings": 3, "grade": "high"}, {"seq": 16848, "team": "3팀", "name": "금천현대아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  711-2", "addr_road": "벚꽃로 73 금천현대아파트", "floors": "지상24", "buildings": 11, "grade": "high"}, {"seq": 16893, "team": "3팀", "name": "아이보리", "dong": "독산동", "addr": "서울특별시 금천구 독산동  878-35", "addr_road": "문성로5길 35 (독산동)", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16888, "team": "3팀", "name": "레이나", "dong": "독산동", "addr": "서울특별시 금천구 독산동  882-18", "addr_road": "문성로7가길 17", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16892, "team": "3팀", "name": "동은아파트(4차)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  883-10", "addr_road": "문성로3길 47 동은 아파트", "floors": "지상6", "buildings": 3, "grade": "low"}, {"seq": 16885, "team": "3팀", "name": "동은아파트(5차)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  883-21", "addr_road": "문성로3길 43", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16884, "team": "3팀", "name": "동은아파트(6차)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  883-22", "addr_road": "문성로3길 41", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16836, "team": "3팀", "name": "동은노보빌아파트(2차)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-1", "addr_road": "문성로 8 동은노보빌아파트 채익병(관리자 010-8972-8264)", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16834, "team": "3팀", "name": "동은노보빌아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-2", "addr_road": "문성로 10 동은노보빌아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16823, "team": "3팀", "name": "영진힐탑아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-4", "addr_road": "문성로 14 영진힐탑아파트", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16838, "team": "3팀", "name": "청호센트레빌아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-5", "addr_road": "문성로 14-1 청호센트레빌", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16833, "team": "3팀", "name": "동은노보빌아파트(1차)", "dong": "독산동", "addr": "서울특별시 금천구 독산동  887-54", "addr_road": "문성로 6 동은노보빌아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16824, "team": "3팀", "name": "힐탑아파트2차", "dong": "독산동", "addr": "서울특별시 금천구 독산동  894-20", "addr_road": "문성로 39 힐탑아파트", "floors": "지상7", "buildings": 1, "grade": "low"}, {"seq": 16891, "team": "3팀", "name": "힐탑아파트3차", "dong": "독산동", "addr": "서울특별시 금천구 독산동  894-3", "addr_road": "문성로3길 64 힐탑아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16886, "team": "3팀", "name": "힐탑아파트4차", "dong": "독산동", "addr": "서울특별시 금천구 독산동  894-5", "addr_road": "문성로3길 70 힐탑4차아파트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16881, "team": "3팀", "name": "메트로힐스", "dong": "독산동", "addr": "서울특별시 금천구 독산동  896-20", "addr_road": "문성로3가길 4-2", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16880, "team": "3팀", "name": "목화아파트102동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  961-13", "addr_road": "문성로1길 7 목화아파트2차", "floors": "지상8", "buildings": 2, "grade": "low"}, {"seq": 16864, "team": "3팀", "name": "목화아파트103동", "dong": "독산동", "addr": "서울특별시 금천구 독산동  974-2", "addr_road": "문성로 4 독산동주상복합", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16762, "team": "3팀", "name": "동성리치빌2차", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-102", "addr_road": "범안로12길 63", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16851, "team": "3팀", "name": "빌 인사이드 파크2", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-119", "addr_road": "범안로12가길 28", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16875, "team": "3팀", "name": "지오빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-137", "addr_road": "범안로12길 33", "floors": "지상6", "buildings": 3, "grade": "low"}, {"seq": 16761, "team": "3팀", "name": "힐튼쉐어하우스 A동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-141", "addr_road": "범안로12길 29-20 힐튼쉐어하우스 A동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16861, "team": "3팀", "name": "옥토하이츠빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-186", "addr_road": "범안로12가길 52", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16765, "team": "3팀", "name": "덕산파크빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-197", "addr_road": "범안로12길 29-3 덕산파크빌", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16760, "team": "3팀", "name": "힐튼쉐어하우스 B동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-200", "addr_road": "범안로12길 29-24 힐튼쉐어하우스 B동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16764, "team": "3팀", "name": "힐튼쉐어하우스 C동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-201", "addr_road": "범안로12길 29-26 힐튼쉐어하우스 C동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16763, "team": "3팀", "name": "힐튼쉐어하우스 D동", "dong": "독산동", "addr": "서울특별시 금천구 독산동 1006-202", "addr_road": "범안로12길 29-30 힐튼쉐어하우스 D동", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16911, "team": "3팀", "name": "일광리치빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 299-19", "addr_road": "두산로13길 27", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16841, "team": "3팀", "name": "덕산파크빌", "dong": "독산동", "addr": "서울특별시 금천구 독산동 331-70", "addr_road": "범안로17길 29-6", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16778, "team": "3팀", "name": "근로자임대아파트(독산동 333-24)", "dong": "독산동", "addr": "서울특별시 금천구 독산동 333-24", "addr_road": "범안로15길 65", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16863, "team": "3팀", "name": "문성아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 887-7", "addr_road": "문성로 18 문성아파트", "floors": "지상10", "buildings": 1, "grade": "mid"}, {"seq": 16835, "team": "3팀", "name": "패밀리움", "dong": "독산동", "addr": "서울특별시 금천구 독산동 888-16", "addr_road": "문성로 17-1 패밀리움", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16837, "team": "3팀", "name": "성웅아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 888-18", "addr_road": "문성로 15", "floors": "지상8", "buildings": 1, "grade": "low"}, {"seq": 16832, "team": "3팀", "name": "장미아파트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 889-36", "addr_road": "문성로 29", "floors": "지상10", "buildings": 1, "grade": "mid"}, {"seq": 16817, "team": "3팀", "name": "독산동 890-12", "dong": "독산동", "addr": "서울특별시 금천구 독산동 890-12", "addr_road": "문성로 36-8", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16818, "team": "3팀", "name": "미소트리움", "dong": "독산동", "addr": "서울특별시 금천구 독산동 893-2", "addr_road": "문성로 40 미소트리움", "floors": "지상6", "buildings": 2, "grade": "low"}, {"seq": 16883, "team": "3팀", "name": "독산동 895-14", "dong": "독산동", "addr": "서울특별시 금천구 독산동 895-14", "addr_road": "문성로3가길 11", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16882, "team": "3팀", "name": "독산동 895-7", "dong": "독산동", "addr": "서울특별시 금천구 독산동 895-7", "addr_road": "문성로3가길 19", "floors": "지상4", "buildings": 1, "grade": "low"}, {"seq": 16822, "team": "3팀", "name": "동신빌라트", "dong": "독산동", "addr": "서울특별시 금천구 독산동 906-17 외 1필지", "addr_road": "문성로 59 동신빌라트", "floors": "지상6", "buildings": 1, "grade": "low"}, {"seq": 16870, "team": "3팀", "name": "일광하이츠", "dong": "독산동", "addr": "서울특별시 금천구 독산동 961-20", "addr_road": "문성로1길 29", "floors": "지상6", "buildings": 1, "grade": "low"}];
+const JS_KEY   = 'a5e543d870953c97c0775ff90846c81b';
+const REST_KEY = '679e96ad11a237d821892915c0d0a7d8';
 const CACHE_KEY = 'gc_all_teams_v1';
 const DONE_KEY  = 'gc_all_done_v1';
-const JS_KEY    = 'a5e543d870953c97c0775ff90846c81b';
-const REST_KEY  = '679e96ad11a237d821892915c0d0a7d8';
+const SB_URL = 'https://dsootbcqnifiqyajivrx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb290YmNxbmlmaXF5YWppdnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwMzcsImV4cCI6MjA5MTYwMjAzN30.f3b4dkWnYz02yQzsuljD3PuEq9LO7tvzzt1k_Ko9uHs';
+const SB_TABLE = 'apt_check_done';
+const SB_HEADERS = {
+  'apikey': SB_KEY,
+  'Authorization': 'Bearer ' + SB_KEY,
+  'Content-Type': 'application/json'
+};
+const TEAM_COLOR = {'1팀':'#3b82f6','2팀':'#ef4444','3팀':'#a78bfa'};
+const TEAM_CLASS = {'1팀':'t1','2팀':'t2','3팀':'t3'};
 
-let kakaoMap = null;
-let overlays = {};
-let iwOpen = null;
-let geocoded = {};
-let filterDong = new Set(['all']);
-let filterTeam = new Set(['all']);
-let filterText = '';
-let activeIdx = -1;
+let kakaoMap=null,overlays={},iwOpen=null,geocoded={},lastIw=null,activeMarkerEl=null;
+
+let filterDong=new Set(['all']),filterTeam=new Set(['all']),filterText='',activeIdx=-1;
+let distMode=false,distLine=null,distMarkers=[],distPath=[];
+let rvMode=false,rvInstance=null;
 
 document.getElementById('jsKey').value = JS_KEY;
 document.getElementById('restKey').value = REST_KEY;
+window.addEventListener('DOMContentLoaded',()=>{updateCounts();updateDoneCount();});
+window.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('rvPanel').style.display!=='none'){closeRv();return;}
+    if(rvMode){setRvMode(false);return;}
+    if(distMode){finishDist();return;}
+  }
+});
 
-const TEAM_COLOR = { '1팀':'#f59e0b', '2팀':'#ef4444', '3팀':'#a78bfa' };
-const TEAM_CLASS = { '1팀':'t1', '2팀':'t2', '3팀':'t3' };
-
-// ── 완료 상태 ──
-function loadDone(){ try{return JSON.parse(localStorage.getItem(DONE_KEY)||'{}')}catch{return{}} }
-function saveDone(d){ try{localStorage.setItem(DONE_KEY,JSON.stringify(d))}catch{} }
-
-function toggleDone(idx) {
-  const done = loadDone();
-  const key = String(RAW[idx].seq);
-  done[key] ? delete done[key] : (done[key] = true);
-  saveDone(done);
-  applyDoneState(idx, !!done[key]);
-  const btn = document.getElementById('doneBtn-'+idx);
-  if (btn) { btn.classList.toggle('undone', !done[key]); btn.textContent = done[key] ? '✓ 조사완료 (취소)' : '조사완료'; }
+function toggleApiPanel(){
+  const body=document.getElementById('apiBody'),arrow=document.getElementById('apiArrow');
+  const isOpen=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
+  if(isOpen){body.style.maxHeight='0';arrow.style.transform='rotate(-90deg)';}
+  else{body.style.maxHeight='400px';arrow.style.transform='';}
 }
 
-function applyDoneState(idx, isDone) {
-  const el = document.getElementById('mk-'+idx);
-  if (el) el.classList.toggle('done', isDone);
-  const item = document.getElementById('item-'+idx);
-  if (item) item.classList.toggle('done', isDone);
+// ── Supabase 동기화 ──
+async function sbLoadDone() {
+  try {
+    const r = await fetch(
+      SB_URL + '/rest/v1/' + SB_TABLE + '?select=seq',
+      { headers: SB_HEADERS }
+    );
+    if (!r.ok) throw new Error('load fail');
+    const rows = await r.json();
+    // Supabase 결과를 로컬 형식으로 변환 { seq: true }
+    const done = {};
+    rows.forEach(row => { done[String(row.seq)] = true; });
+    saveStore(DONE_KEY, done); // 로컬 캐시에도 저장
+    return done;
+  } catch(e) {
+    console.warn('Supabase 로드 실패, 로컬 캐시 사용:', e.message);
+    return loadStore(DONE_KEY);
+  }
+}
+
+async function sbSetDone(d, isDone) {
+  try {
+    if (isDone) {
+      await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ seq: d.seq, name: d.name, team: d.team })
+      });
+    } else {
+      await fetch(
+        SB_URL + '/rest/v1/' + SB_TABLE + '?seq=eq.' + d.seq,
+        { method: 'DELETE', headers: SB_HEADERS }
+      );
+    }
+  } catch(e) {
+    console.warn('Supabase 저장 실패:', e.message);
+    showToast('서버 저장 실패 (로컬만 적용)', 'err');
+  }
+}
+
+// 스토리지 헬퍼
+function loadStore(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return{}}}
+function saveStore(key,val){try{localStorage.setItem(key,JSON.stringify(val))}catch{}}
+function loadDone(){return loadStore(DONE_KEY)}
+function saveDone(d){saveStore(DONE_KEY,d)}
+function toggleDone(idx){
+  const done=loadDone(),key=String(RAW[idx].seq);
+  done[key]?delete done[key]:(done[key]=true);
+  const isDone = !!done[key];
+  saveDone(done);
+  applyDoneState(idx, isDone);
+  const btn=document.getElementById('doneBtn-'+idx);
+  if(btn){btn.style.background=isDone?'#22c55e':'#f1f5f9';btn.style.color=isDone?'#fff':'#64748b';btn.textContent=isDone?'✓ 조사완료 (취소)':'조사완료';}
+  // Supabase 백그라운드 동기화
+  sbSetDone(RAW[idx], isDone);
+}
+function applyDoneState(idx,isDone){
+  const el=document.getElementById('mk-'+idx);if(el)el.classList.toggle('done',isDone);
+  const item=document.getElementById('item-'+idx);if(item)item.classList.toggle('done',isDone);
   updateDoneCount();
 }
+function updateDoneCount(){document.getElementById('doneCount').textContent=Object.keys(loadDone()).length;}
 
-function updateDoneCount() {
-  const n = Object.keys(loadDone()).length;
-  document.getElementById('doneCount').textContent = n;
+// 캐시
+function loadCache(){return loadStore(CACHE_KEY)}
+function saveCache(c){saveStore(CACHE_KEY,c)}
+
+// 주소 정제
+function cleanRoad(r){r=r.trim();r=r.replace(/\s*[（(（].*/,'');r=r.replace(/\s+[가-힣]{2,}.+$/,'');r=r.replace(/\s+\d+동$/,'').replace(/\s+\d+호$/,'');return r.trim();}
+function cleanJibun(a){a=a.replace(/\s+/g,' ').trim();a=a.replace(/\s*외\s*\d+필지.*/,'');a=a.replace(/(\d+-\d+)\s*산$/,'산$1');a=a.replace(/(\d+)-0\b/,'$1');a=a.replace(/\s*[,(（*].*/,'');return a.trim();}
+
+// Kakao REST
+async function kakaoAddr(q,key){const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(q)}&size=1`,{headers:{Authorization:`KakaoAK ${key}`}});if(!r.ok)return null;const d=await r.json();return d.documents?.[0]?{lat:+d.documents[0].y,lng:+d.documents[0].x}:null;}
+async function kakaoKw(q,key){const r=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=1`,{headers:{Authorization:`KakaoAK ${key}`}});if(!r.ok)return null;const d=await r.json();return d.documents?.[0]?{lat:+d.documents[0].y,lng:+d.documents[0].x}:null;}
+async function geocodeOne(d,key){
+  const rd=cleanRoad(d.addr_road);
+  if(rd){const g=await kakaoAddr('서울 금천구 '+rd,key);if(g)return g;}
+  const g2=await kakaoAddr(cleanJibun(d.addr),key);if(g2)return g2;
+  return await kakaoKw('서울 금천구 '+d.name.replace(/[（(].*/,'').trim(),key);
 }
 
-// ── 캐시 ──
-function loadCache(){ try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')}catch{return{}} }
-function saveCache(c){ try{localStorage.setItem(CACHE_KEY,JSON.stringify(c))}catch{} }
-
-// ── 주소 정제 ──
-function cleanRoad(r) {
-  r = r.trim();
-  r = r.replace(/\s*[（(（].*/,'');
-  r = r.replace(/\s+[가-힣]{2,}.+$/,'');
-  r = r.replace(/\s+\d+동$/,'').replace(/\s+\d+호$/,'');
-  return r.trim();
-}
-function cleanJibun(a) {
-  a = a.replace(/\s+/g,' ').trim();
-  a = a.replace(/\s*외\s*\d+필지.*/,'');
-  a = a.replace(/(\d+-\d+)\s*산$/,'산$1');
-  a = a.replace(/(\d+)-0\b/,'$1');
-  a = a.replace(/\s*[,(（*].*/,'');
-  return a.trim();
-}
-
-// ── Kakao REST ──
-async function kakaoAddr(q,key){ const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(q)}&size=1`,{headers:{Authorization:`KakaoAK ${key}`}}); if(!r.ok)return null; const d=await r.json(); return d.documents?.[0]?{lat:+d.documents[0].y,lng:+d.documents[0].x}:null; }
-async function kakaoKw(q,key){ const r=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(q)}&size=1`,{headers:{Authorization:`KakaoAK ${key}`}}); if(!r.ok)return null; const d=await r.json(); return d.documents?.[0]?{lat:+d.documents[0].y,lng:+d.documents[0].x}:null; }
-
-async function geocodeOne(d,key) {
-  const rd = cleanRoad(d.addr_road);
-  if (rd) { const g=await kakaoAddr('서울 금천구 '+rd,key); if(g)return g; }
-  const g2=await kakaoAddr(cleanJibun(d.addr),key); if(g2)return g2;
-  const nm=d.name.replace(/[（(].*/,'').trim();
-  return await kakaoKw('서울 금천구 '+nm,key);
-}
-
-// ── 지도 ──
-function initKakaoMap(jsKey) {
-  if (kakaoMap) return Promise.resolve();
-  return new Promise((resolve,reject) => {
-    const timer = setTimeout(()=>reject(new Error('TIMEOUT')),10000);
-    const s = document.createElement('script');
-    s.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false&libraries=services`;
-    s.onerror = ()=>{ clearTimeout(timer); reject(new Error('SCRIPT_LOAD')); };
-    s.onload = ()=>{
-      try {
-        kakao.maps.load(()=>{
-          clearTimeout(timer);
-          try {
-            document.getElementById('mapPh').style.display='none';
-            kakaoMap = new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(37.463,126.900),level:5});
-            document.getElementById('mapToolbar').style.display='flex';
-            setupMapClickListener();
-            resolve();
-          } catch(e){reject(new Error('MAP_CREATE'));}
-        });
-      } catch(e){clearTimeout(timer);reject(new Error('SDK_LOAD'));}
+// 지도
+function initKakaoMap(jsKey){
+  if(kakaoMap)return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error('TIMEOUT')),10000);
+    const s=document.createElement('script');
+    s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${jsKey}&autoload=false&libraries=services`;
+    s.onerror=()=>{clearTimeout(timer);reject(new Error('SCRIPT_LOAD'));};
+    s.onload=()=>{
+      kakao.maps.load(()=>{
+        clearTimeout(timer);
+        try{
+          document.getElementById('mapPh').style.display='none';
+          kakaoMap=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(37.463,126.900),level:5});
+          document.getElementById('mapToolbar').style.display='flex';
+          setupListeners();resolve();
+        }catch(e){reject(new Error('MAP_CREATE'));}
+      });
     };
     document.head.appendChild(s);
   });
 }
-
-function showDiag(code) {
-  const origin = location.origin;
-  const msgs = {
-    'TIMEOUT':{title:'도메인 미등록',desc:'Kakao 개발자 콘솔에 현재 주소가 등록되지 않았습니다.',fix:`1. developers.kakao.com 접속<br>2. 플랫폼 키 → JavaScript 키 수정<br>3. JavaScript SDK 도메인에 <b>${origin}</b> 추가 후 저장`},
-    'SCRIPT_LOAD':{title:'JavaScript 키 오류 또는 도메인 미등록',desc:'403 오류: JS 키 확인 또는 도메인 등록 후 저장 버튼 클릭',fix:`developers.kakao.com → 플랫폼 키 → JS 키 수정<br>SDK 도메인: <b>${origin}</b>`},
-    'MAP_CREATE':{title:'지도 생성 실패',desc:'',fix:'페이지 새로고침 후 다시 시도하세요.'},
-  };
+function setupListeners(){
+  kakao.maps.event.addListener(kakaoMap,'click',(e)=>{
+    if(rvMode){openRvAt(e.latLng);setRvMode(false);return;}
+    if(distMode){distPath.push(e.latLng);addDistMarker(e.latLng);updateDistLine();}
+  });
+  kakao.maps.event.addListener(kakaoMap,'dblclick',()=>{if(distMode)finishDist();});
+}
+function showDiag(code){
+  const origin=location.origin;
+  const msgs={'TIMEOUT':{title:'도메인 미등록',desc:'Kakao 콘솔에 현재 주소가 등록되지 않았습니다.',fix:'플랫폼 키 → JS 키 수정 → SDK 도메인 추가 후 저장'},'SCRIPT_LOAD':{title:'JS 키 오류 또는 도메인 미등록',desc:'403 오류',fix:'developers.kakao.com → 플랫폼 키 → JS 키 수정 → SDK 도메인 추가'}};
   const m=msgs[code]||{title:'오류: '+code,desc:'',fix:'새로고침하세요.'};
   document.getElementById('diagTitle').textContent='⚠️ '+m.title;
   document.getElementById('diagDesc').textContent=m.desc;
-  document.getElementById('diagFix').innerHTML=m.fix;
+  document.getElementById('diagFix').innerHTML=m.fix+'<br><b>'+origin+'</b>';
   document.getElementById('diagOrigin').textContent=origin;
   document.getElementById('diagPanel').style.display='flex';
 }
 
-// ── 메인 ──
-async function startLoad() {
+// 메인 로드
+async function startLoad(){
   const jsKey=document.getElementById('jsKey').value.trim();
   const restKey=document.getElementById('restKey').value.trim();
   if(!jsKey||!restKey){showToast('API 키를 입력하세요','err');return;}
@@ -360,28 +352,30 @@ async function startLoad() {
   document.getElementById('pgLabel').style.display='block';
   document.getElementById('statsInner').style.display='block';
   document.getElementById('listEl').innerHTML='';
-  try { await initKakaoMap(jsKey); }
-  catch(e) {
+  try{await initKakaoMap(jsKey);}
+  catch(e){
     document.getElementById('goBtn').disabled=false;
     document.getElementById('pgWrap').style.display='none';
     document.getElementById('pgLabel').style.display='none';
     document.getElementById('statsInner').style.display='none';
-    showDiag(e.message); return;
+    showDiag(e.message);return;
   }
   const cache=loadCache();
+  // Supabase에서 완료 상태 로드 (실패 시 로컬 캐시 사용)
+  showToast('서버에서 완료 현황 불러오는 중...', '');
+  const doneMapInit = await sbLoadDone();
   let ok=0,fail=0;
   for(let i=0;i<RAW.length;i++){
     const d=RAW[i];
     document.getElementById('pgFill').style.width=((i+1)/RAW.length*100)+'%';
     document.getElementById('pgLabel').textContent=`${i+1}/${RAW.length} [${d.team}] ${d.name}`;
     document.getElementById('sTotal').textContent=i+1;
-    const ck=String(d.seq);
-    let geo=null;
+    const ck=String(d.seq);let geo=null;
     if(cache[ck]){geo=cache[ck]==='fail'?null:cache[ck];}
-    else{try{geo=await geocodeOne(d,restKey);}catch{}; cache[ck]=geo||'fail'; if(i%10===0)saveCache(cache); await sleep(80);}
+    else{try{geo=await geocodeOne(d,restKey);}catch{}cache[ck]=geo||'fail';if(i%10===0)saveCache(cache);await sleep(80);}
     geocoded[i]=geo;
-    if(geo){ok++;addMarker(i,geo.lat,geo.lng,d);}else fail++;
-    renderItem(d,i,!!geo);
+    if(geo){ok++;addMarker(i,geo.lat,geo.lng,d,doneMapInit);}else fail++;
+    renderItem(d,i,!!geo,doneMapInit);
     document.getElementById('sOk').textContent=ok;
     document.getElementById('sFail').textContent=fail;
   }
@@ -389,299 +383,150 @@ async function startLoad() {
   document.getElementById('pgWrap').style.display='none';
   document.getElementById('pgLabel').style.display='none';
   document.getElementById('goBtn').disabled=false;
-  // 완료 상태 복원
   const doneMap=loadDone();
-  RAW.forEach((_,i)=>{ if(doneMap[String(RAW[i].seq)])applyDoneState(i,true); });
-  updateDoneCount();
-  applyFilter();
-  fitAll();
+  RAW.forEach((_,i)=>{if(doneMap[String(RAW[i].seq)])applyDoneState(i,true);});
+  updateDoneCount();applyFilter();fitAll();
+  document.getElementById('apiBody').style.maxHeight='0';
+  document.getElementById('apiArrow').style.transform='rotate(-90deg)';
   showToast(`완료 ✓ ${ok}개 성공 / ${fail}개 실패`,ok>fail?'ok':'err');
-  // 완료 후 자동으로 패널 접기 (지도 공간 확보)
-  const body = document.getElementById('apiBody');
-  const arrow = document.getElementById('apiArrow');
-  body.style.maxHeight = body.scrollHeight + 'px';
-  requestAnimationFrame(()=>{
-    body.style.maxHeight='0';
-    body.classList.add('collapsed');
-    arrow.classList.remove('open');
-  });
 }
 
-// ── 마커 ──
-function addMarker(idx,lat,lng,d){
-  const done=loadDone(),isDone=!!done[String(d.seq)];
+// 마커
+function addMarker(idx,lat,lng,d,_doneMap){
+  const done=_doneMap||loadDone(),isDone=!!done[String(d.seq)];
   const el=document.createElement('div');
   el.className=`kk-marker ${TEAM_CLASS[d.team]}${isDone?' done':''}`;
   el.id='mk-'+idx;
-  const color=TEAM_COLOR[d.team];
-  const rdClean=cleanRoad(d.addr_road);
+  const color=TEAM_COLOR[d.team],rdClean=cleanRoad(d.addr_road);
   const iwEl=document.createElement('div');
-  iwEl.style.cssText='background:#fff;border-radius:8px;padding:10px 14px;min-width:210px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-family:sans-serif;position:relative';
+  iwEl.style.cssText='background:#fff;border-radius:8px;padding:10px 14px;min-width:220px;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-family:sans-serif';
   iwEl.innerHTML=`
-    <div style="font-size:9px;font-weight:700;color:${color};margin-bottom:4px">${d.team} 조사대상</div>
-    <div style="font-size:13px;font-weight:700;margin-bottom:6px;color:#111;padding-right:18px">${esc(d.name)}</div>
-    <div style="font-size:11px;color:#666;margin-bottom:2px">📍 ${d.dong} · ${d.floors} · ${d.buildings}동</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:9px;font-weight:700;color:${color};background:${color}22;padding:2px 7px;border-radius:10px">${d.team} 조사대상</span>
+      <span style="cursor:pointer;color:#999;font-size:16px;line-height:1;padding:2px 6px" onclick="closeIw()">✕</span>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:5px;color:#111">${esc(d.name)}</div>
+    <div style="font-size:11px;color:#555;margin-bottom:2px">📍 ${d.dong} · ${d.floors} · ${d.buildings}동</div>
     ${rdClean?`<div style="font-size:11px;color:#555;margin-bottom:2px">🛣 ${esc(rdClean)}</div>`:''}
-    <div style="font-size:10px;color:#999">${esc(d.addr.replace('서울특별시 금천구 ',''))}</div>
-    <button id="doneBtn-${idx}" class="complete-btn ${isDone?'':'undone'}" onclick="toggleDone(${idx})">${isDone?'✓ 조사완료 (취소)':'조사완료'}</button>
-    <button onclick="closeIw();openRvAt(new kakao.maps.LatLng(${lat},${lng}))" style="width:100%;margin-top:6px;padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 이 위치 로드뷰</button>
-    <div style="position:absolute;top:6px;right:8px;cursor:pointer;color:#999;font-size:14px" onclick="closeIw()">✕</div>
-  `;
+    <div style="font-size:10px;color:#999;margin-bottom:8px">${esc(d.addr.replace('서울특별시 금천구 ',''))}</div>
+    <div style="border-top:1px solid #f1f5f9;padding-top:8px;display:flex;flex-direction:column;gap:5px">
+      <button id="doneBtn-${idx}" onclick="toggleDone(${idx})" style="width:100%;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:${isDone?'#22c55e':'#f1f5f9'};color:${isDone?'#fff':'#64748b'}">${isDone?'✓ 조사완료 (취소)':'조사완료'}</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        <button onclick="openRvFromPopup(new kakao.maps.LatLng(${lat},${lng}))" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 로드뷰</button>
+        <button onclick="openNavi(${lat},${lng},'${d.name.replace(/'/g,'').substring(0,15)}')" style="padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:11px;cursor:pointer;background:#fffbeb;color:#92400e;font-weight:600">🗺️ 길찾기</button>
+      </div>
+    </div>`;
   const iw=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:iwEl,yAnchor:1.4,zIndex:100});
-  el.addEventListener('click',()=>{ if(iwOpen)iwOpen.setMap(null); iw.setMap(kakaoMap); iwOpen=iw; setActive(idx); kakaoMap.panTo(new kakao.maps.LatLng(lat,lng)); });
+  el.addEventListener('click',()=>{
+    if(iwOpen)iwOpen.setMap(null);
+    iw.setMap(kakaoMap);iwOpen=iw;
+    setActive(idx);kakaoMap.panTo(new kakao.maps.LatLng(lat,lng));
+  });
   const overlay=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:el,zIndex:10});
   overlay.setMap(kakaoMap);
   overlays[idx]={overlay,iw,lat,lng};
 }
-function closeIw(){if(iwOpen){iwOpen.setMap(null);iwOpen=null;}}
+function closeIw(){
+  if(iwOpen){iwOpen.setMap(null);iwOpen=null;}
+  if(activeMarkerEl){activeMarkerEl.classList.remove('active-mk');activeMarkerEl=null;}
+}
 
-// ── 목록 ──
-function renderItem(d,i,ok){
-  const done=loadDone(),isDone=!!done[String(d.seq)];
+// 목록
+function renderItem(d,i,ok,_doneMap){
+  const done=_doneMap||loadDone(),isDone=!!done[String(d.seq)];
   const div=document.createElement('div');
   div.className='item'+(isHidden(d)?' hidden':'')+(isDone?' done':'');
   div.id='item-'+i;
-  div.innerHTML=`
-    <div class="team-dot" style="background:${TEAM_COLOR[d.team]}"></div>
-    <div class="ibody">
-      <div class="iname">${esc(d.name)}</div>
-      <div class="isub">${esc(d.addr.replace('서울특별시 금천구 ',''))}</div>
-      <div class="tags">
-        <span class="itag ${TEAM_CLASS[d.team]}">${d.team}</span>
-        <span class="itag dong">${d.dong}</span>
-        <span class="itag ${ok?TEAM_CLASS[d.team]:'err'}">${ok?d.floors:'변환실패'}</span>
-        <span class="done-badge">✓ 완료</span>
-      </div>
-    </div>`;
+  div.innerHTML=`<div class="team-dot" style="background:${TEAM_COLOR[d.team]}"></div><div class="ibody"><div class="iname">${esc(d.name)}</div><div class="isub">${esc(d.addr.replace('서울특별시 금천구 ',''))}</div><div class="tags"><span class="itag ${TEAM_CLASS[d.team]}">${d.team}</span><span class="itag dong">${d.dong}</span><span class="itag ${ok?TEAM_CLASS[d.team]:'err'}">${ok?d.floors:'변환실패'}</span><span class="done-badge">✓ 완료</span></div></div>`;
   div.addEventListener('click',()=>{
     setActive(i);
     if(geocoded[i]&&kakaoMap){
-      kakaoMap.setLevel(3);
-      kakaoMap.panTo(new kakao.maps.LatLng(geocoded[i].lat,geocoded[i].lng));
-      if(overlays[i]){if(iwOpen)iwOpen.setMap(null);overlays[i].iw.setMap(kakaoMap);iwOpen=overlays[i].iw;}
+      kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(geocoded[i].lat,geocoded[i].lng));
+      if(overlays[i]){
+        if(iwOpen)iwOpen.setMap(null);
+        if(activeMarkerEl)activeMarkerEl.classList.remove('active-mk');
+        const mkEl=document.getElementById('mk-'+i);
+        if(mkEl){mkEl.classList.add('active-mk');activeMarkerEl=mkEl;}
+        overlays[i].iw.setMap(kakaoMap);iwOpen=overlays[i].iw;
+      }
     }
   });
   document.getElementById('listEl').appendChild(div);
 }
 
-// ── 필터 ──
-function isHidden(d){
-  if(!filterDong.has('all')&&!filterDong.has(d.dong))return true;
-  if(!filterTeam.has('all')&&!filterTeam.has(d.team))return true;
-  if(filterText&&!d.name.toLowerCase().includes(filterText.toLowerCase()))return true;
-  return false;
-}
-function applyFilter(){
-  filterText=document.getElementById('searchInput').value.trim();
-  let shown=0;
-  RAW.forEach((d,i)=>{
-    const el=document.getElementById('item-'+i);
-    if(!el)return;
-    const hide=isHidden(d);
-    el.classList.toggle('hidden',hide);
-    if(overlays[i])overlays[i].overlay.setMap(hide?null:kakaoMap);
-    if(!hide)shown++;
-  });
-  document.getElementById('sShow') && (document.getElementById('sShow').textContent=shown);
-  updateCounts();
-}
-
-function toggleDong(g){
-  if(g==='all'){filterDong=new Set(['all']);}
-  else{filterDong.delete('all');filterDong.has(g)?filterDong.delete(g):filterDong.add(g);if(filterDong.size===0)filterDong=new Set(['all']);}
-  const isAll=filterDong.has('all');
-  document.getElementById('dbtn-all').classList.toggle('active',isAll);
-  ['독산동','가산동'].forEach(d=>{const b=document.getElementById('dbtn-'+d);if(b)b.classList.toggle('active',!isAll&&filterDong.has(d));});
-  applyFilter();
-}
-
-function toggleTeam(g){
-  if(g==='all'){filterTeam=new Set(['all']);}
-  else{filterTeam.delete('all');filterTeam.has(g)?filterTeam.delete(g):filterTeam.add(g);if(filterTeam.size===0)filterTeam=new Set(['all']);}
-  const isAll=filterTeam.has('all');
-  document.getElementById('tbtn-all').classList.toggle('active',isAll);
-  ['1팀','2팀','3팀'].forEach(t=>{const b=document.getElementById('tbtn-'+t);if(b)b.classList.toggle('active',!isAll&&filterTeam.has(t));});
-  applyFilter();
-}
-
-function updateCounts(){
-  const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));
-  ['독산동','가산동'].forEach(dong=>{const el=document.getElementById('dcnt-'+dong);if(el)el.textContent=vis.filter(d=>d.dong===dong).length;});
-  ['1팀','2팀','3팀'].forEach(t=>{const el=document.getElementById('tcnt-'+t);if(el)el.textContent=vis.filter(d=>d.team===t).length;});
-}
-
-function setActive(idx){
-  if(activeIdx>=0)document.getElementById(`item-${activeIdx}`)?.classList.remove('active');
-  activeIdx=idx;
-  const el=document.getElementById(`item-${idx}`);
-  if(el){el.classList.add('active');el.scrollIntoView({block:'nearest'});}
-}
+// 필터
+function isHidden(d){if(!filterDong.has('all')&&!filterDong.has(d.dong))return true;if(!filterTeam.has('all')&&!filterTeam.has(d.team))return true;if(filterText&&!d.name.toLowerCase().includes(filterText.toLowerCase()))return true;return false;}
+function applyFilter(){filterText=document.getElementById('searchInput').value.trim();let shown=0;RAW.forEach((d,i)=>{const el=document.getElementById('item-'+i);if(!el)return;const hide=isHidden(d);el.classList.toggle('hidden',hide);if(overlays[i])overlays[i].overlay.setMap(hide?null:kakaoMap);if(!hide)shown++;});updateCounts();}
+function toggleDong(g){if(g==='all')filterDong=new Set(['all']);else{filterDong.delete('all');filterDong.has(g)?filterDong.delete(g):filterDong.add(g);if(filterDong.size===0)filterDong=new Set(['all']);}const isAll=filterDong.has('all');document.getElementById('dbtn-all').classList.toggle('active',isAll);['독산동','가산동'].forEach(d=>{const b=document.getElementById('dbtn-'+d);if(b)b.classList.toggle('active',!isAll&&filterDong.has(d));});applyFilter();}
+function toggleTeam(g){if(g==='all')filterTeam=new Set(['all']);else{filterTeam.delete('all');filterTeam.has(g)?filterTeam.delete(g):filterTeam.add(g);if(filterTeam.size===0)filterTeam=new Set(['all']);}const isAll=filterTeam.has('all');document.getElementById('tbtn-all').classList.toggle('active',isAll);['1팀','2팀','3팀'].forEach(t=>{const b=document.getElementById('tbtn-'+t);if(b)b.classList.toggle('active',!isAll&&filterTeam.has(t));});applyFilter();}
+function updateCounts(){const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));['독산동','가산동'].forEach(dong=>{const el=document.getElementById('dcnt-'+dong);if(el)el.textContent=vis.filter(d=>d.dong===dong).length;});['1팀','2팀','3팀'].forEach(t=>{const el=document.getElementById('tcnt-'+t);if(el)el.textContent=vis.filter(d=>d.team===t).length;});}
+function setActive(idx){if(activeIdx>=0)document.getElementById(`item-${activeIdx}`)?.classList.remove('active');activeIdx=idx;const el=document.getElementById(`item-${idx}`);if(el){el.classList.add('active');el.scrollIntoView({block:'nearest'});}}
 function fitAll(){
   if(!kakaoMap)return;
   const bounds=new kakao.maps.LatLngBounds();
   Object.values(geocoded).filter(Boolean).forEach(g=>bounds.extend(new kakao.maps.LatLng(g.lat,g.lng)));
   kakaoMap.setBounds(bounds,50);
 }
-// ── 단일 지도 클릭 리스너 (모드 플래그로 분기) ──
-function setupMapClickListener() {
-  kakao.maps.event.addListener(kakaoMap, 'click', (e) => {
-    if (rvMode) {
-      openRvAt(e.latLng);
-      setRvMode(false);
-      return;
-    }
-    if (distMode) {
-      distPath.push(e.latLng);
-      addDistMarker(e.latLng);
-      updateDistLine();
-    }
-  });
-  kakao.maps.event.addListener(kakaoMap, 'dblclick', () => {
-    if (distMode) finishDist();
-  });
+
+// 거리재기
+function toggleDist(){distMode=!distMode;const btn=document.getElementById('btnDist');if(distMode){btn.classList.add('on');btn.textContent='📏 거리재기 중...';document.getElementById('distInfo').style.display='block';document.getElementById('btnDistClear').style.display='block';kakaoMap.setCursor('crosshair');setRvMode(false);}else finishDist();}
+function addDistMarker(pos){const el=document.createElement('div');el.style.cssText='width:8px;height:8px;border-radius:50%;background:#2f81f7;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)';const o=new kakao.maps.CustomOverlay({position:pos,content:el,zIndex:50});o.setMap(kakaoMap);distMarkers.push(o);}
+function updateDistLine(){if(distLine)distLine.setMap(null);if(distPath.length<2)return;distLine=new kakao.maps.Polyline({map:kakaoMap,path:distPath,strokeWeight:3,strokeColor:'#2f81f7',strokeOpacity:.9,strokeStyle:'solid'});const m=Math.round(distLine.getLength());document.getElementById('distVal').textContent=m>=1000?(m/1000).toFixed(2)+'km':m+'m';}
+function finishDist(){distMode=false;document.getElementById('btnDist').classList.remove('on');document.getElementById('btnDist').textContent='📏 거리재기';if(kakaoMap)kakaoMap.setCursor('');}
+function clearDist(){if(distLine){distLine.setMap(null);distLine=null;}distMarkers.forEach(m=>m.setMap(null));distMarkers=[];distPath=[];document.getElementById('distVal').textContent='0';document.getElementById('distInfo').style.display='none';document.getElementById('btnDistClear').style.display='none';finishDist();}
+
+// 로드뷰
+function setRvMode(on){rvMode=on;const btn=document.getElementById('btnRv');if(on){btn.classList.add('on-rv');btn.textContent='🔭 위치 클릭...';kakaoMap.setCursor('crosshair');distMode=false;finishDist();}else{btn.classList.remove('on-rv');btn.textContent='🔭 로드뷰';if(kakaoMap)kakaoMap.setCursor('');}}
+function toggleRvMode(){setRvMode(!rvMode);}
+function openRvAt(latLng){const panel=document.getElementById('rvPanel');panel.style.display='flex';document.getElementById('rvHint').textContent=`${latLng.getLat().toFixed(5)}, ${latLng.getLng().toFixed(5)}`;const container=document.getElementById('rvMap');if(!rvInstance)rvInstance=new kakao.maps.Roadview(container);const client=new kakao.maps.RoadviewClient();client.getNearestPanoId(latLng,50,(panoId)=>{if(panoId)rvInstance.setPanoId(panoId,latLng);else document.getElementById('rvHint').textContent='이 위치 근처에 로드뷰가 없습니다';});}
+function openRvFromPopup(latLng) {
+  lastIw = iwOpen; // 현재 팝업 저장
+  closeIw();
+  openRvAt(latLng);
 }
 
-// ── 거리재기 ──
-let distMode = false;
-let distLine = null;
-let distMarkers = [];
-let distPath = [];
-
-function toggleDist() {
-  distMode = !distMode;
-  const btn = document.getElementById('btnDist');
-  const info = document.getElementById('distInfo');
-  const clearBtn = document.getElementById('btnDistClear');
-  if (distMode) {
-    btn.classList.add('active');
-    btn.textContent = '📏 거리재기 중...';
-    info.style.display = 'block';
-    clearBtn.style.display = 'block';
-    kakaoMap.setCursor('crosshair');
-    setRvMode(false); // 로드뷰 모드 해제
-  } else {
-    finishDist();
-  }
-}
-
-function addDistMarker(pos) {
-  const el = document.createElement('div');
-  el.style.cssText = 'width:8px;height:8px;border-radius:50%;background:#2f81f7;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)';
-  const o = new kakao.maps.CustomOverlay({position:pos,content:el,zIndex:50});
-  o.setMap(kakaoMap);
-  distMarkers.push(o);
-}
-
-function updateDistLine() {
-  if (distLine) distLine.setMap(null);
-  if (distPath.length < 2) return;
-  distLine = new kakao.maps.Polyline({
-    map:kakaoMap, path:distPath,
-    strokeWeight:3, strokeColor:'#2f81f7',
-    strokeOpacity:.9, strokeStyle:'solid'
-  });
-  const m = Math.round(distLine.getLength());
-  document.getElementById('distVal').textContent = m >= 1000 ? (m/1000).toFixed(2)+'km' : m+'m';
-}
-
-function finishDist() {
-  distMode = false;
-  document.getElementById('btnDist').classList.remove('active');
-  document.getElementById('btnDist').textContent = '📏 거리재기';
-  kakaoMap.setCursor('');
-}
-
-function clearDist() {
-  if (distLine) { distLine.setMap(null); distLine = null; }
-  distMarkers.forEach(m => m.setMap(null));
-  distMarkers = []; distPath = [];
-  document.getElementById('distVal').textContent = '0';
-  document.getElementById('distInfo').style.display = 'none';
-  document.getElementById('btnDistClear').style.display = 'none';
-  finishDist();
-}
-
-// ── 로드뷰 ──
-let rvMode = false;
-let rvInstance = null;
-
-function setRvMode(on) {
-  rvMode = on;
-  const btn = document.getElementById('btnRv');
-  if (on) {
-    btn.classList.add('active-rv');
-    btn.textContent = '🔭 위치 클릭...';
-    kakaoMap.setCursor('crosshair');
-    distMode = false; // 거리재기 모드 해제
-  } else {
-    btn.classList.remove('active-rv');
-    btn.textContent = '🔭 로드뷰';
-    kakaoMap.setCursor('');
-  }
-}
-
-function openRvMode() {
-  setRvMode(!rvMode); // 토글
-}
-
-function openRvAt(latLng) {
-  const panel = document.getElementById('rvPanel');
-  panel.style.display = 'flex';
-  document.getElementById('rvHint').textContent =
-    `${latLng.getLat().toFixed(5)}, ${latLng.getLng().toFixed(5)}`;
-  const container = document.getElementById('rvMap');
-  if (!rvInstance) rvInstance = new kakao.maps.Roadview(container);
-  const client = new kakao.maps.RoadviewClient();
-  client.getNearestPanoId(latLng, 50, (panoId) => {
-    if (panoId) {
-      rvInstance.setPanoId(panoId, latLng);
-    } else {
-      document.getElementById('rvHint').textContent = '이 위치 근처에 로드뷰가 없습니다';
-    }
-  });
-}
-
-function closeRv() {
-  document.getElementById('rvPanel').style.display = 'none';
+function closeRv(){
+  document.getElementById('rvPanel').style.display='none';
   setRvMode(false);
+  // 이전 팝업 복원
+  if(lastIw && kakaoMap){
+    lastIw.setMap(kakaoMap);
+    iwOpen = lastIw;
+    lastIw = null;
+  }
+}
+
+// 유틸
+// 카카오맵 길찾기
+function openNavi(toLat, toLng, toName) {
+  const url = 'https://map.kakao.com/link/from/'
+    + encodeURIComponent('금천소방서') + ',37.4617,126.8951'
+    + '/to/' + encodeURIComponent(toName) + ',' + toLat + ',' + toLng;
+  window.open(url, '_blank');
+}
+
+// 모바일 뷰 토글
+let mobMapMode = false;
+function toggleMobView() {
+  mobMapMode = !mobMapMode;
+  const sidebar = document.querySelector('.sidebar');
+  const mapWrap = document.querySelector('.map-wrap');
+  const btn = document.getElementById('mobToggle');
+  if (mobMapMode) {
+    sidebar.classList.add('map-mode');
+    mapWrap.classList.remove('list-mode');
+    btn.textContent = '📋 목록 보기';
+    if (kakaoMap) setTimeout(() => kakaoMap.relayout(), 100);
+  } else {
+    sidebar.classList.remove('map-mode');
+    mapWrap.classList.add('list-mode');
+    btn.textContent = '🗺️ 지도 보기';
+  }
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',4000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-
-// 초기화
-function toggleApiPanel() {
-  const body = document.getElementById('apiBody');
-  const arrow = document.getElementById('apiArrow');
-  const isOpen = !body.classList.contains('collapsed');
-  if (isOpen) {
-    body.style.maxHeight = body.scrollHeight + 'px';
-    requestAnimationFrame(() => {
-      body.style.maxHeight = '0';
-      body.classList.add('collapsed');
-      arrow.classList.remove('open');
-    });
-  } else {
-    body.classList.remove('collapsed');
-    body.style.maxHeight = '300px';
-    arrow.classList.add('open');
-  }
-}
-
-window.addEventListener('DOMContentLoaded',()=>{
-  updateCounts();
-  updateDoneCount();
-});
-
-// ESC 키로 로드뷰 닫기 / 거리재기 취소 / 로드뷰 모드 취소
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    if (document.getElementById('rvPanel').style.display !== 'none') { closeRv(); return; }
-    if (rvMode) { closeRvMode(); return; }
-    if (distMode) { finishDist(); return; }
-  }
-});
 </script>
 </body>
 </html>
