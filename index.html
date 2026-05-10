@@ -109,15 +109,28 @@ h1{font-size:14px;font-weight:600}
 </head>
 <body>
 
-<!-- 실행 방법 안내 배너 -->
-<div class="banner" id="banner">
+<!-- 환경 감지 배너 -->
+<div class="banner" id="banner" style="display:none">
   <span>⚠️</span>
-  <span><b>로컬 파일로 열면 카카오맵이 동작하지 않습니다.</b>
-  CMD에서 <code>python -m http.server 8080</code> 실행 후
-  브라우저에서 <code>http://localhost:8080</code> 으로 접속하세요.
-  그리고 Kakao 콘솔 → 플랫폼 → Web에 <code>http://localhost:8080</code> 등록 필수.</span>
+  <span id="bannerMsg"></span>
   <span class="banner-close" onclick="this.parentElement.style.display='none'">✕</span>
 </div>
+<script>
+(function(){
+  const proto = location.protocol;
+  const host = location.hostname;
+  const banner = document.getElementById('banner');
+  const msg = document.getElementById('bannerMsg');
+  if (proto === 'file:') {
+    banner.style.display = 'flex';
+    msg.innerHTML = '<b>로컬 파일로 열면 카카오맵이 동작하지 않습니다.</b> CMD에서 <code>python -m http.server 8080</code> 실행 후 <code>http://localhost:8080</code> 으로 접속하고, Kakao 콘솔 → 플랫폼 → Web에 <code>http://localhost:8080</code> 등록 필수.';
+  } else if (host !== 'localhost' && host !== '127.0.0.1') {
+    // GitHub Pages 등 외부 도메인 — Kakao 콘솔 도메인 등록 안내
+    banner.style.display = 'flex';
+    msg.innerHTML = '📌 Kakao 개발자 콘솔 → 플랫폼 → Web에 <code>' + location.origin + '</code> 를 등록해야 지도가 표시됩니다. 이미 등록했다면 이 메시지를 닫으세요.';
+  }
+})();
+</script>
 
 <header>
   <div class="logo">🔥</div>
