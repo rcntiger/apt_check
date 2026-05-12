@@ -342,11 +342,11 @@ async function startLoad(){
 
     showDiag(e.message);return;
   }
-  // 금천소방서 좌표 자동 취득 (시흥대로 342)
+  // 금천소방서 좌표 자동 취득 (키워드 검색)
   try {
     const fsRes = await fetch(
-      'https://dapi.kakao.com/v2/local/search/address.json?query=' +
-      encodeURIComponent('서울특별시 금천구 시흥대로 342') + '&size=1',
+      'https://dapi.kakao.com/v2/local/search/keyword.json?query=' +
+      encodeURIComponent('금천소방서') + '&size=1',
       { headers: { Authorization: 'KakaoAK ' + REST_KEY } }
     );
     const fsData = await fsRes.json();
