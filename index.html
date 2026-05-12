@@ -342,6 +342,21 @@ async function startLoad(){
 
     showDiag(e.message);return;
   }
+  // 금천소방서 좌표 자동 취득 (시흥대로 342)
+  try {
+    const fsRes = await fetch(
+      'https://dapi.kakao.com/v2/local/search/address.json?query=' +
+      encodeURIComponent('서울특별시 금천구 시흥대로 342') + '&size=1',
+      { headers: { Authorization: 'KakaoAK ' + REST_KEY } }
+    );
+    const fsData = await fsRes.json();
+    if (fsData.documents?.[0]) {
+      FS_LAT = +fsData.documents[0].y;
+      FS_LNG = +fsData.documents[0].x;
+      console.log('금천소방서 좌표:', FS_LAT, FS_LNG);
+    }
+  } catch(e) { console.warn('소방서 좌표 취득 실패, 기본값 사용'); }
+
   const cache=loadCache();
   // Supabase에서 완료 상태 로드 (실패 시 로컬 캐시 사용)
   showToast('서버에서 완료 현황 불러오는 중...', '');
@@ -640,9 +655,9 @@ function closeRv(){
 
 // 유틸
 // 카카오맵 길찾기
-// 금천소방서: 서울 금천구 시흥대로 342
-const FS_LAT = 37.456287;
-const FS_LNG = 126.894847;
+// 금천소방서 좌표 (startLoad 시 자동 geocoding으로 갱신)
+let FS_LAT = 37.456287;
+let FS_LNG = 126.894847;
 const FS_NAME = encodeURIComponent('금천소방서');
 
 function openNavi(toLat, toLng, toName) {
