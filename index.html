@@ -640,9 +640,14 @@ function closeRv(){
 
 // 유틸
 // 카카오맵 길찾기
+// 금천소방서: 서울 금천구 시흥대로 342
+const FS_LAT = 37.456287;
+const FS_LNG = 126.894847;
+const FS_NAME = encodeURIComponent('금천소방서');
+
 function openNavi(toLat, toLng, toName) {
   const url = 'https://map.kakao.com/link/from/'
-    + encodeURIComponent('금천소방서') + ',37.4617,126.8951'
+    + FS_NAME + ',' + FS_LAT + ',' + FS_LNG
     + '/to/' + encodeURIComponent(toName) + ',' + toLat + ',' + toLng;
   window.open(url, '_blank');
 }
