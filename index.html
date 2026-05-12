@@ -122,11 +122,11 @@ h1{font-size:14px;font-weight:600}
       <div class="search-wrap"><input type="text" id="searchInput" placeholder="단지명 검색..." oninput="applyFilter()"></div>
     </div>
     <div class="list" id="listEl">
-      <div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">API 키 입력 후<br>[지도에 표시] 버튼을 누르세요<br><span style="font-size:10px;color:#444">167건 · 자동 캐싱</span></div>
+      <div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">⏳ 지도 로딩 중...<br><span style="font-size:10px;color:#444">잠시만 기다려주세요</span></div>
     </div>
   </div>
   <div class="map-wrap">
-    <div class="map-ph" id="mapPh"><div class="big">🗺️</div><div>API 키 입력 후 버튼을 누르세요</div></div>
+    <div class="map-ph" id="mapPh"><div class="big">🗺️</div><div>지도 로딩 중...</div></div>
     <div id="map"></div>
     <div class="map-toolbar" id="mapToolbar">
       <button class="tool-btn" id="btnSat" onclick="toggleSat()">🛰️ 위성</button>
@@ -185,8 +185,6 @@ let filterDong=new Set(['all']),filterTeam=new Set(['all']),filterText='',active
 let distMode=false,distLine=null,distMarkers=[],distPath=[];
 let rvMode=false,rvInstance=null;
 
-document.getElementById('jsKey').value = JS_KEY;
-document.getElementById('restKey').value = REST_KEY;
 window.addEventListener('DOMContentLoaded',()=>{updateCounts();updateDoneCount();startLoad();});
 window.addEventListener('keydown',(e)=>{
   if(e.key==='Escape'){
@@ -325,7 +323,7 @@ async function startLoad(){
   document.getElementById('pgWrap').style.display='block';
   document.getElementById('pgLabel').style.display='block';
 
-  document.getElementById('listEl').innerHTML='';
+  document.getElementById('listEl').innerHTML='<div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">⏳ 지도 로딩 중...<br><span style=\"font-size:10px;color:#444\">잠시만 기다려주세요</span></div>';
   try{await initKakaoMap(jsKey);}
   catch(e){
       document.getElementById('pgWrap').style.display='none';
