@@ -23,15 +23,6 @@ h1{font-size:14px;font-weight:600}
 .map-ph .big{font-size:36px;opacity:.25}
 .panel{padding:10px 12px;border-bottom:1px solid var(--bd)}
 .ptitle{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);margin-bottom:7px}
-.panel-toggle{width:100%;background:none;border:none;color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:0;margin-bottom:7px}
-.panel-toggle .ptitle{margin-bottom:0}
-.key-row{display:flex;gap:6px;align-items:center;margin-bottom:5px}
-.key-row label{font-size:11px;color:var(--mt);width:48px;flex-shrink:0}
-.key-row input{flex:1;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:6px 8px;font-size:11px;font-family:monospace;outline:none}
-.key-row input:focus{border-color:var(--ac)}
-.go-btn{width:100%;padding:9px;border:none;border-radius:var(--r);font-size:13px;font-weight:700;cursor:pointer;background:var(--ac);color:#fff}
-.go-btn:hover{filter:brightness(1.1)}
-.go-btn:disabled{background:var(--sur2);color:var(--mt);cursor:not-allowed}
 .pgwrap{height:3px;background:var(--sur2);border-radius:2px;overflow:hidden;margin-top:7px;display:none}
 .pgfill{height:100%;background:var(--ac);border-radius:2px;transition:width .1s;width:0}
 .pglabel{font-size:10px;color:var(--mt);margin-top:4px;text-align:center;display:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -69,6 +60,7 @@ h1{font-size:14px;font-weight:600}
 .tool-btn:hover{background:var(--sur2)}
 .tool-btn.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .tool-btn.on-rv{background:#22c55e;color:#fff;border-color:#22c55e}
+.tool-btn.on-sat{background:#7c3aed;color:#fff;border-color:#7c3aed}
 .dist-info{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);padding:8px 16px;font-size:12px;z-index:9999;display:none;box-shadow:0 4px 12px rgba(0,0,0,.5);text-align:center;white-space:nowrap}
 .dist-info span{color:var(--ac);font-weight:700;font-size:14px}
 .rv-panel{position:absolute;inset:0;z-index:200;display:none;flex-direction:column}
@@ -98,25 +90,14 @@ h1{font-size:14px;font-weight:600}
 </header>
 <div class="layout">
   <div class="sidebar">
-    <div class="panel">
-      <button class="panel-toggle" onclick="toggleApiPanel()">
-        <span class="ptitle">🔑 Kakao API 키 &amp; 현황</span>
-        <span id="apiArrow" style="font-size:11px;color:var(--mt);transition:transform .2s;display:inline-block">▼</span>
-      </button>
-      <div id="apiBody" style="max-height:300px;overflow:hidden;transition:max-height .25s ease">
-        <div class="key-row"><label>JS 키</label><input type="text" id="jsKey"></div>
-        <div class="key-row"><label>REST 키</label><input type="text" id="restKey"></div>
-        <button class="go-btn" id="goBtn" onclick="startLoad()">🗺️ 지도에 표시</button>
-        <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
-        <div class="pglabel" id="pgLabel"></div>
-        <div id="statsInner" style="display:none">
-          <div class="stats-row">
-            <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
-            <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
-            <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
-            <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
-          </div>
-        </div>
+    <div class="panel" id="statsPanel">
+      <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
+      <div class="pglabel" id="pgLabel"></div>
+      <div class="stats-row" id="statsInner">
+        <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
+        <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
+        <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
+        <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
       </div>
     </div>
     <div class="panel">
@@ -148,6 +129,7 @@ h1{font-size:14px;font-weight:600}
     <div class="map-ph" id="mapPh"><div class="big">🗺️</div><div>API 키 입력 후 버튼을 누르세요</div></div>
     <div id="map"></div>
     <div class="map-toolbar" id="mapToolbar">
+      <button class="tool-btn" id="btnSat" onclick="toggleSat()">🛰️ 위성</button>
       <button class="tool-btn" id="btnDist" onclick="toggleDist()">📏 거리재기</button>
       <button class="tool-btn" id="btnRv" onclick="toggleRvMode()">🔭 로드뷰</button>
       <button class="tool-btn" id="btnDistClear" onclick="clearDist()" style="display:none;font-size:11px;color:var(--hi)">✕ 거리초기화</button>
@@ -205,7 +187,7 @@ let rvMode=false,rvInstance=null;
 
 document.getElementById('jsKey').value = JS_KEY;
 document.getElementById('restKey').value = REST_KEY;
-window.addEventListener('DOMContentLoaded',()=>{updateCounts();updateDoneCount();});
+window.addEventListener('DOMContentLoaded',()=>{updateCounts();updateDoneCount();startLoad();});
 window.addEventListener('keydown',(e)=>{
   if(e.key==='Escape'){
     if(document.getElementById('rvPanel').style.display!=='none'){closeRv();return;}
@@ -214,12 +196,6 @@ window.addEventListener('keydown',(e)=>{
   }
 });
 
-function toggleApiPanel(){
-  const body=document.getElementById('apiBody'),arrow=document.getElementById('apiArrow');
-  const isOpen=body.style.maxHeight!=='0px'&&body.style.maxHeight!=='0';
-  if(isOpen){body.style.maxHeight='0';arrow.style.transform='rotate(-90deg)';}
-  else{body.style.maxHeight='400px';arrow.style.transform='';}
-}
 
 // ── Supabase 동기화 ──
 async function sbLoadDone() {
@@ -344,20 +320,17 @@ function showDiag(code){
 
 // 메인 로드
 async function startLoad(){
-  const jsKey=document.getElementById('jsKey').value.trim();
-  const restKey=document.getElementById('restKey').value.trim();
-  if(!jsKey||!restKey){showToast('API 키를 입력하세요','err');return;}
-  document.getElementById('goBtn').disabled=true;
+  const jsKey=JS_KEY;
+  const restKey=REST_KEY;
   document.getElementById('pgWrap').style.display='block';
   document.getElementById('pgLabel').style.display='block';
-  document.getElementById('statsInner').style.display='block';
+
   document.getElementById('listEl').innerHTML='';
   try{await initKakaoMap(jsKey);}
   catch(e){
-    document.getElementById('goBtn').disabled=false;
-    document.getElementById('pgWrap').style.display='none';
+      document.getElementById('pgWrap').style.display='none';
     document.getElementById('pgLabel').style.display='none';
-    document.getElementById('statsInner').style.display='none';
+
     showDiag(e.message);return;
   }
   const cache=loadCache();
@@ -382,12 +355,9 @@ async function startLoad(){
   saveCache(cache);
   document.getElementById('pgWrap').style.display='none';
   document.getElementById('pgLabel').style.display='none';
-  document.getElementById('goBtn').disabled=false;
   const doneMap=loadDone();
   RAW.forEach((_,i)=>{if(doneMap[String(RAW[i].seq)])applyDoneState(i,true);});
   updateDoneCount();applyFilter();fitAll();
-  document.getElementById('apiBody').style.maxHeight='0';
-  document.getElementById('apiArrow').style.transform='rotate(-90deg)';
   showToast(`완료 ✓ ${ok}개 성공 / ${fail}개 실패`,ok>fail?'ok':'err');
 }
 
@@ -468,6 +438,22 @@ function fitAll(){
   kakaoMap.setBounds(bounds,50);
 }
 
+// 위성지도
+let satMode = false;
+function toggleSat() {
+  satMode = !satMode;
+  const btn = document.getElementById('btnSat');
+  if (satMode) {
+    kakaoMap.setMapTypeId(kakao.maps.MapTypeId.HYBRID); // 위성+레이블
+    btn.classList.add('on-sat');
+    btn.textContent = '🗺️ 일반지도';
+  } else {
+    kakaoMap.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);
+    btn.classList.remove('on-sat');
+    btn.textContent = '🛰️ 위성';
+  }
+}
+
 // 거리재기
 function toggleDist(){distMode=!distMode;const btn=document.getElementById('btnDist');if(distMode){btn.classList.add('on');btn.textContent='📏 거리재기 중...';document.getElementById('distInfo').style.display='block';document.getElementById('btnDistClear').style.display='block';kakaoMap.setCursor('crosshair');setRvMode(false);}else finishDist();}
 function addDistMarker(pos){const el=document.createElement('div');el.style.cssText='width:8px;height:8px;border-radius:50%;background:#2f81f7;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.5)';const o=new kakao.maps.CustomOverlay({position:pos,content:el,zIndex:50});o.setMap(kakaoMap);distMarkers.push(o);}
@@ -519,7 +505,6 @@ function toggleMobView() {
     if (kakaoMap) setTimeout(() => kakaoMap.relayout(), 100);
   } else {
     sidebar.classList.remove('map-mode');
-    mapWrap.classList.add('list-mode');
     btn.textContent = '🗺️ 지도 보기';
   }
 }
