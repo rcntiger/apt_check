@@ -106,6 +106,7 @@ h1{font-size:14px;font-weight:600}
         <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
         <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
       </div>
+      <button onclick="exportExcel()" style="width:100%;margin-top:8px;padding:7px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📊 점검결과 엑셀 출력</button>
     </div>
     <div class="panel">
       <div class="ptitle">📍 행정동</div>
@@ -216,32 +217,44 @@ async function sbLoadDone() {
       SB_URL + '/rest/v1/' + SB_TABLE + '?select=seq',
       { headers: SB_HEADERS }
     );
-    if (!r.ok) throw new Error('load fail');
+    if (!r.ok) {
+      const err = await r.text();
+      console.error('Supabase 로드 오류:', r.status, err);
+      showToast(`서버 동기화 실패 (${r.status}) — 로컬 데이터 사용`, 'err');
+      return loadStore(DONE_KEY);
+    }
     const rows = await r.json();
-    // Supabase 결과를 로컬 형식으로 변환 { seq: true }
     const done = {};
     rows.forEach(row => { done[String(row.seq)] = true; });
-    saveStore(DONE_KEY, done); // 로컬 캐시에도 저장
+    saveStore(DONE_KEY, done);
+    console.log('Supabase 동기화 완료:', Object.keys(done).length + '건');
     return done;
   } catch(e) {
     console.warn('Supabase 로드 실패, 로컬 캐시 사용:', e.message);
+    showToast('서버 연결 실패 — 로컬 데이터 사용', 'err');
     return loadStore(DONE_KEY);
   }
 }
 
 async function sbSetDone(d, isDone) {
   try {
+    let r;
     if (isDone) {
-      await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
+      r = await fetch(SB_URL + '/rest/v1/' + SB_TABLE, {
         method: 'POST',
         headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ seq: d.seq, name: d.name, team: d.team })
       });
     } else {
-      await fetch(
+      r = await fetch(
         SB_URL + '/rest/v1/' + SB_TABLE + '?seq=eq.' + d.seq,
         { method: 'DELETE', headers: SB_HEADERS }
       );
+    }
+    if (!r.ok) {
+      const err = await r.text();
+      console.error('Supabase 오류:', r.status, err);
+      showToast(`서버 저장 실패 (${r.status}) — 로컬만 적용`, 'err');
     }
   } catch(e) {
     console.warn('Supabase 저장 실패:', e.message);
@@ -792,6 +805,122 @@ function toggleMobView() {
 function clearRoadHighlight(){
   roadPolylines.forEach(p=>p.setMap(null)); roadPolylines=[];
   if(roadLabelOverlay){roadLabelOverlay.setMap(null);roadLabelOverlay=null;}
+}
+
+// 엑셀 출력
+function loadSheetJS() {
+  return new Promise((resolve, reject) => {
+    if (window.XLSX) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = resolve;
+    s.onerror = () => {
+      const s2 = document.createElement('script');
+      s2.src = 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';
+      s2.onload = resolve;
+      s2.onerror = reject;
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  });
+}
+
+async function exportExcel() {
+  showToast('엑셀 준비 중...', '');
+  try {
+    await loadSheetJS();
+    const done = loadDone();
+    const now = new Date();
+    const stamp = now.getFullYear() + ('0'+(now.getMonth()+1)).slice(-2) + ('0'+now.getDate()).slice(-2);
+
+    // ── 시트1: 전체 점검 현황 ──
+    const allRows = RAW.map((d, i) => {
+      const isDone = !!done[String(d.seq)];
+      const geo = geocoded[i];
+      return {
+        '팀': d.team,
+        '건물명': d.name,
+        '행정동': d.dong,
+        '층수': d.floors,
+        '동수': d.buildings,
+        '주소': d.addr,
+        '조사완료': isDone ? '○' : '',
+      };
+    });
+
+    // ── 시트2: 조사완료 목록 ──
+    const doneRows = RAW
+      .filter(d => !!done[String(d.seq)])
+      .map(d => ({
+        '팀': d.team,
+        '건물명': d.name,
+        '행정동': d.dong,
+        '층수': d.floors,
+        '동수': d.buildings,
+        '주소': d.addr,
+      }));
+
+    // ── 시트3: 미완료 목록 ──
+    const undoneRows = RAW
+      .filter(d => !done[String(d.seq)])
+      .map(d => ({
+        '팀': d.team,
+        '건물명': d.name,
+        '행정동': d.dong,
+        '층수': d.floors,
+        '동수': d.buildings,
+        '주소': d.addr,
+      }));
+
+    // ── 시트4: 팀별 요약 ──
+    const summary = ['1팀','2팀','3팀'].map(team => {
+      const total = RAW.filter(d => d.team === team).length;
+      const comp  = RAW.filter(d => d.team === team && !!done[String(d.seq)]).length;
+      return {
+        '팀': team,
+        '전체': total,
+        '완료': comp,
+        '미완료': total - comp,
+        '완료율': total ? Math.round(comp/total*100) + '%' : '0%'
+      };
+    });
+    // 합계 행 추가
+    const totalAll = RAW.length;
+    const doneAll = Object.keys(done).length;
+    summary.push({
+      '팀': '합계',
+      '전체': totalAll,
+      '완료': doneAll,
+      '미완료': totalAll - doneAll,
+      '완료율': totalAll ? Math.round(doneAll/totalAll*100) + '%' : '0%'
+    });
+
+    const wb = XLSX.utils.book_new();
+
+    const ws1 = XLSX.utils.json_to_sheet(allRows);
+    const ws2 = XLSX.utils.json_to_sheet(doneRows.length ? doneRows : [{'안내':'완료된 건물이 없습니다'}]);
+    const ws3 = XLSX.utils.json_to_sheet(undoneRows.length ? undoneRows : [{'안내':'미완료 건물이 없습니다'}]);
+    const ws4 = XLSX.utils.json_to_sheet(summary);
+
+    // 열 너비 설정
+    const setColWidth = (ws, widths) => {
+      ws['!cols'] = widths.map(w => ({ wch: w }));
+    };
+    setColWidth(ws1, [8,25,8,8,6,40,8]);
+    setColWidth(ws2, [8,25,8,8,6,40]);
+    setColWidth(ws3, [8,25,8,8,6,40]);
+    setColWidth(ws4, [8,8,8,8,10]);
+
+    XLSX.utils.book_append_sheet(wb, ws1, '전체현황');
+    XLSX.utils.book_append_sheet(wb, ws2, '조사완료');
+    XLSX.utils.book_append_sheet(wb, ws3, '미완료');
+    XLSX.utils.book_append_sheet(wb, ws4, '팀별요약');
+
+    XLSX.writeFile(wb, `아파트점검결과_${stamp}.xlsx`);
+    showToast(`📊 엑셀 저장 완료 (${totalAll}건 / 완료 ${doneAll}건)`, 'ok');
+  } catch(e) {
+    showToast('엑셀 출력 실패: ' + e.message, 'err');
+  }
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',4000);}
