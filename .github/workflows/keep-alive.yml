@@ -1,8 +1,9 @@
-# .github/workflows/keep-alive.yml
 name: Supabase Keep Alive
+
 on:
   schedule:
-    - cron: '0 9 */3 * *'  # 3일마다 오전 9시
+    - cron: '0 9 */3 * *'
+  workflow_dispatch:
 
 jobs:
   ping:
@@ -10,6 +11,6 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -X GET \
+          curl -s -o /dev/null -w "Status: %{http_code}\n" \
             "https://dsootbcqnifiqyajivrx.supabase.co/rest/v1/apt_check_done?select=seq&limit=1" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb290YmNxbmlmaXF5YWppdnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwMzcsImV4cCI6MjA5MTYwMjAzN30.f3b4dkWnYz02yQzsuljD3PuEq9LO7tvzzt1k_Ko9uHs"
