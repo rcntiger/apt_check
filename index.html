@@ -167,6 +167,7 @@ const REST_KEY='679e96ad11a237d821892915c0d0a7d8';
 const SB_URL='https://dsootbcqnifiqyajivrx.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRzb290YmNxbmlmaXF5YWppdnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjYwMzcsImV4cCI6MjA5MTYwMjAzN30.f3b4dkWnYz02yQzsuljD3PuEq9LO7tvzzt1k_Ko9uHs';
 const SB_TABLE='apt_check_done';
+const SB_MEMO_TABLE='apt_check_memo';
 const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
 const CACHE_KEY='gc_apt_v4';
 const DONE_KEY='gc_done_v2';
@@ -206,7 +207,79 @@ function loadCache(){return loadStore(CACHE_KEY)}
 function saveCache(c){saveStore(CACHE_KEY,c)}
 function loadMemo(){return loadStore(MEMO_KEY)}
 function getMemo(seq){return loadMemo()[String(seq)]||'';}
-function setMemo(seq,text){const m=loadMemo();if(text.trim())m[String(seq)]=text.trim();else delete m[String(seq)];saveStore(MEMO_KEY,m);}
+function setMemo(seq,text){
+  const m=loadMemo();
+  if(text.trim()) m[String(seq)]=text.trim();
+  else delete m[String(seq)];
+  saveStore(MEMO_KEY,m);
+  // RAW에서 name, team 찾기
+  const d=RAW.find(r=>r.seq===seq)||{};
+  sbSetMemo(seq, d.name||'', d.team||'', text);
+}
+
+
+// ── Supabase 메모 동기화 ──
+const MEMO_TABLE = 'apt_check_memo';
+
+async function sbLoadMemos() {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/' + MEMO_TABLE + '?select=seq,memo', {headers: SB_HEADERS});
+    if (!r.ok) throw new Error(r.status);
+    const rows = await r.json();
+    const memos = {};
+    rows.forEach(row => { if(row.memo) memos[String(row.seq)] = row.memo; });
+    saveStore(MEMO_KEY, memos);
+    return memos;
+  } catch(e) {
+    console.warn('메모 로드 실패, 로컬 사용:', e.message);
+    return loadStore(MEMO_KEY);
+  }
+}
+
+async function sbSetMemo(seq, name, team, memoText) {
+  try {
+    if (memoText.trim()) {
+      const r = await fetch(SB_URL + '/rest/v1/' + MEMO_TABLE, {
+        method: 'POST',
+        headers: {...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates'},
+        body: JSON.stringify({seq, name, team, memo: memoText.trim(), updated_at: new Date().toISOString()})
+      });
+      if (!r.ok) { const e = await r.text(); console.error('메모 저장 실패:', e); }
+    } else {
+      // 빈 메모는 삭제
+      await fetch(SB_URL + '/rest/v1/' + MEMO_TABLE + '?seq=eq.' + seq, {
+        method: 'DELETE', headers: SB_HEADERS
+      });
+    }
+  } catch(e) { console.warn('메모 저장 실패:', e.message); }
+}
+
+async function sbLoadMemos(){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/'+SB_MEMO_TABLE+'?select=seq,memo',{headers:SB_HEADERS});
+    if(!r.ok)throw new Error(r.status);
+    const rows=await r.json();
+    const memos=loadMemo();
+    rows.forEach(row=>{if(row.memo)memos[String(row.seq)]=row.memo;});
+    saveStore(MEMO_KEY,memos);
+    return memos;
+  }catch(e){return loadStore(MEMO_KEY);}
+}
+async function sbSetMemo(seq,name,team,text){
+  try{
+    let r;
+    if(text.trim()){
+      r=await fetch(SB_URL+'/rest/v1/'+SB_MEMO_TABLE,{
+        method:'POST',
+        headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},
+        body:JSON.stringify({seq,name,team,memo:text.trim()})
+      });
+    }else{
+      r=await fetch(SB_URL+'/rest/v1/'+SB_MEMO_TABLE+'?seq=eq.'+seq,{method:'DELETE',headers:SB_HEADERS});
+    }
+    if(!r.ok)showToast('메모 저장 실패('+r.status+')','err');
+  }catch(e){showToast('메모 저장 실패','err');}
+}
 
 async function sbLoadDone(){
   try{
@@ -312,7 +385,7 @@ async function startLoad(){
   await Promise.all([loadStationCoords('fs'),loadStationCoords('sh')]);
   FS_LAT=STATIONS.fs.lat;FS_LNG=STATIONS.fs.lng;
   showToast('서버에서 완료 현황 불러오는 중...','');
-  const doneMapInit=await sbLoadDone();
+  const [doneMapInit]=await Promise.all([sbLoadDone(),sbLoadMemos()]);
   const cache=loadCache();let ok=0,fail=0;
   for(let i=0;i<RAW.length;i++){
     const d=RAW[i];
