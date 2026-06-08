@@ -58,6 +58,9 @@ h1{font-size:14px;font-weight:600}
 .dist-info span{color:var(--ac);font-weight:700;font-size:14px}
 .rv-panel{position:absolute;inset:0;z-index:200;display:none;flex-direction:column}
 .rv-header{background:var(--sur);border-bottom:1px solid var(--bd);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.rv-body{flex:1;position:relative;min-height:0}
+.rv-minimap{position:absolute;bottom:12px;right:12px;width:180px;height:140px;border-radius:8px;overflow:hidden;border:2px solid rgba(255,255,255,.8);box-shadow:0 4px 12px rgba(0,0,0,.5);z-index:300;cursor:pointer}
+.rv-minimap-btn{position:absolute;bottom:12px;right:12px;z-index:301;background:var(--sur);border:1px solid var(--bd2);border-radius:6px;padding:5px 9px;font-size:11px;color:var(--tx);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)}
 #rvMap{flex:1}
 .kk-marker{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.6);cursor:pointer;transition:all .2s}
 .kk-marker:hover{transform:scale(1.5)}
@@ -148,9 +151,13 @@ h1{font-size:14px;font-weight:600}
       <div class="rv-header">
         <span style="font-size:13px;font-weight:600;flex:1">🔭 로드뷰</span>
         <span style="font-size:11px;color:var(--mt)" id="rvHint"></span>
-        <button onclick="closeRv()" style="padding:6px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-left:12px">← 지도로 돌아가기</button>
+        <button onclick="toggleMinimap()" id="btnMinimap" style="padding:5px 10px;background:var(--sur2);color:var(--tx);border:1px solid var(--bd2);border-radius:6px;font-size:11px;cursor:pointer">🗺️ 미니맵</button>
+        <button onclick="closeRv()" style="padding:6px 14px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-left:8px">← 지도로 돌아가기</button>
       </div>
-      <div id="rvMap"></div>
+      <div class="rv-body">
+        <div id="rvMap" style="width:100%;height:100%"></div>
+        <div class="rv-minimap" id="rvMinimap" style="display:none"><div id="rvMinimapInner" style="width:100%;height:100%"></div></div>
+      </div>
     </div>
     <div id="diagPanel">
       <div class="diag-box">
@@ -186,7 +193,7 @@ const EDU_TYPE_ICON={'유치원':'🧸','초등학교':'🎒','중학교':'📚'
 let kakaoMap=null,overlays={},iwOpen=null,geocoded={},lastIw=null,activeMarkerEl=null;
 let filterDong=new Set(['all']),filterTeam=new Set(['all']),filterText='',activeIdx=-1;
 let distMode=false,distLine=null,distMarkers=[],distPath=[];
-let rvMode=false,rvInstance=null;
+let rvMode=false,rvInstance=null,rvMinimapInst=null,rvOverlay=null,minimapOn=false;
 let roadPolylines=[],roadLabelOverlay=null;
 let satMode=false,mobMapMode=false;
 let exclMarkers={'1팀':[],'2팀':[],'3팀':[],'시흥센터':[]},exclIws=[],exclLoaded=false,exclOn=false;
@@ -224,7 +231,7 @@ function setDoneDate(seq,dateStr){
     }).catch(()=>{});
   }
 }
-function getDoneDate(seq){const d=loadDoneDate()[String(seq)];return d?new Date(d).toLocaleDateString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace('.',''):'';;}
+function getDoneDate(seq){const d=loadDoneDate()[String(seq)];return d?new Date(d).toLocaleDateString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.'):'';}
 function saveDone(d){saveStore(DONE_KEY,d)}
 function loadCache(){return loadStore(CACHE_KEY)}
 function saveCache(c){saveStore(CACHE_KEY,c)}
@@ -560,11 +567,50 @@ function openRvAt(latLng){
   document.getElementById('rvHint').textContent=`${latLng.getLat().toFixed(5)}, ${latLng.getLng().toFixed(5)}`;
   const tb=document.getElementById('mapToolbar');if(tb)tb.style.top='56px';
   if(!rvInstance)rvInstance=new kakao.maps.Roadview(document.getElementById('rvMap'));
+  // 미니맵 초기화
+  if(!rvMinimapInst){
+    rvMinimapInst=new kakao.maps.Map(document.getElementById('rvMinimapInner'),{
+      center:latLng,level:3
+    });
+    // 위치 마커
+    rvOverlay=new kakao.maps.CustomOverlay({
+      position:latLng,
+      content:'<div style="width:14px;height:14px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)"></div>',
+      zIndex:10
+    });
+    rvOverlay.setMap(rvMinimapInst);
+    // 로드뷰 이동 시 미니맵 연동
+    kakao.maps.event.addListener(rvInstance,'position_changed',()=>{
+      const pos=rvInstance.getPosition();
+      if(pos&&rvMinimapInst){
+        rvMinimapInst.setCenter(pos);
+        rvOverlay.setPosition(pos);
+      }
+    });
+  } else {
+    rvMinimapInst.setCenter(latLng);
+    rvOverlay.setPosition(latLng);
+  }
   const client=new kakao.maps.RoadviewClient();
-  client.getNearestPanoId(latLng,50,(panoId)=>{if(panoId)rvInstance.setPanoId(panoId,latLng);else document.getElementById('rvHint').textContent='로드뷰 없음';});
+  client.getNearestPanoId(latLng,50,(panoId)=>{
+    if(panoId){
+      rvInstance.setPanoId(panoId,latLng);
+      if(rvMinimapInst)rvMinimapInst.setCenter(latLng);
+    } else {
+      document.getElementById('rvHint').textContent='로드뷰 없음';
+    }
+  });
+}
+function toggleMinimap(){
+  minimapOn=!minimapOn;
+  const mm=document.getElementById('rvMinimap');
+  const btn=document.getElementById('btnMinimap');
+  if(mm)mm.style.display=minimapOn?'block':'none';
+  if(btn){btn.style.background=minimapOn?'var(--ac)':'var(--sur2)';btn.style.color=minimapOn?'#fff':'var(--tx)';}
+  if(minimapOn&&rvMinimapInst)setTimeout(()=>rvMinimapInst.relayout(),50);
 }
 function openRvFromPopup(latLng){lastIw=iwOpen;closeIw();openRvAt(latLng);}
-function closeRv(){document.getElementById('rvPanel').style.display='none';setRvMode(false);const tb=document.getElementById('mapToolbar');if(tb)tb.style.top='10px';if(lastIw&&kakaoMap){lastIw.setMap(kakaoMap);iwOpen=lastIw;lastIw=null;}}
+function closeRv(){document.getElementById('rvPanel').style.display='none';setRvMode(false);const tb=document.getElementById('mapToolbar');if(tb)tb.style.top='10px';if(lastIw&&kakaoMap){lastIw.setMap(kakaoMap);iwOpen=lastIw;lastIw=null;}minimapOn=false;const mm=document.getElementById('rvMinimap');if(mm)mm.style.display='none';const btn=document.getElementById('btnMinimap');if(btn){btn.style.background='var(--sur2)';btn.style.color='var(--tx)';}}
 
 function toggleSat(){satMode=!satMode;const btn=document.getElementById('btnSat');if(satMode){kakaoMap.setMapTypeId(kakao.maps.MapTypeId.HYBRID);btn.classList.add('on-sat');btn.textContent='🗺️ 일반지도';}else{kakaoMap.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);btn.classList.remove('on-sat');btn.textContent='🛰️ 위성';}}
 function toggleMobView(){mobMapMode=!mobMapMode;const sb=document.querySelector('.sidebar'),btn=document.getElementById('mobToggle');if(mobMapMode){sb.classList.add('map-mode');btn.textContent='📋 목록 보기';if(kakaoMap)setTimeout(()=>kakaoMap.relayout(),100);}else{sb.classList.remove('map-mode');btn.textContent='🗺️ 지도 보기';}}
@@ -610,7 +656,7 @@ async function exportExcel(){
     await loadSheetJS();
     const done=loadDone();
     const stamp=new Date().toISOString().slice(0,10).replace(/-/g,'');
-    const allRows=RAW.map((d,i)=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr,'조사완료':done[String(d.seq)]?'○':'','점검일자':getDoneDate(d.seq),'메모':getMemo(d.seq)}));
+    const allRows=RAW.map((d,i)=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr,'조사완료':done[String(d.seq)]?'○':'','점검일자':getDoneDate(d.seq),'점검결과':getMemo(d.seq)}));
     const doneRows=RAW.filter(d=>!!done[String(d.seq)]).map(d=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr}));
     const undoneRows=RAW.filter(d=>!done[String(d.seq)]).map(d=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr}));
     const teams=[...new Set(RAW.map(d=>d.team))];
