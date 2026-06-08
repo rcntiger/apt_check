@@ -93,6 +93,12 @@ h1{font-size:14px;font-weight:600}
         <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
         <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
       </div>
+      <div style="margin-top:8px">
+        <div style="height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
+          <div id="pgFillDone" style="height:100%;background:#22c55e;border-radius:3px;transition:width .3s;width:0%"></div>
+        </div>
+        <div id="pgLabelDone" style="font-size:10px;color:var(--mt);margin-top:3px;text-align:center">전체 0/0 (0%)</div>
+      </div>
       <button onclick="exportExcel()" style="width:100%;margin-top:8px;padding:7px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📊 점검결과 엑셀 출력</button>
     </div>
     <div class="panel">
@@ -343,7 +349,7 @@ function applyDoneState(idx,isDone){
   const item=document.getElementById('item-'+idx);if(item)item.classList.toggle('done',isDone);
   updateDoneCount();
 }
-function updateDoneCount(){document.getElementById('doneCount').textContent=Object.keys(loadDone()).length;}
+function updateDoneCount(){updateCounts();}
 
 function cleanRoad(r){r=r.trim();r=r.replace(/\s*[（(（].*/,'');r=r.replace(/\s+[가-힣]{2,}.+$/,'');r=r.replace(/\s+\d+동$/).replace(/\s+\d+호$/,'');return r.trim();}
 function cleanJibun(a){a=a.replace(/\s+/g,' ').trim();a=a.replace(/\s*외\s*\d+필지.*/,'');a=a.replace(/(\d+-\d+)\s*산$/,'산$1');a=a.replace(/(\d+)-0\b/,'$1');a=a.replace(/\s*[,(（*].*/,'');return a.trim();}
@@ -515,7 +521,29 @@ function isHidden(d){if(!filterDong.has('all')&&!filterDong.has(d.dong))return t
 function applyFilter(){filterText=document.getElementById('searchInput').value.trim();RAW.forEach((d,i)=>{const el=document.getElementById('item-'+i);if(!el)return;const hide=isHidden(d);el.classList.toggle('hidden',hide);if(overlays[i])overlays[i].overlay.setMap(hide?null:kakaoMap);});updateCounts();applyExclFilter();}
 function toggleDong(g){if(g==='all')filterDong=new Set(['all']);else{filterDong.delete('all');filterDong.has(g)?filterDong.delete(g):filterDong.add(g);if(filterDong.size===0)filterDong=new Set(['all']);}const isAll=filterDong.has('all');document.getElementById('dbtn-all').classList.toggle('active',isAll);document.getElementById('dbtn-독산동')?.classList.toggle('active',!isAll&&filterDong.has('독산동'));document.getElementById('dbtn-가산동')?.classList.toggle('active',!isAll&&filterDong.has('가산동'));applyFilter();}
 function toggleTeam(g){if(g==='all')filterTeam=new Set(['all']);else{filterTeam.delete('all');filterTeam.has(g)?filterTeam.delete(g):filterTeam.add(g);if(filterTeam.size===0)filterTeam=new Set(['all']);}const isAll=filterTeam.has('all');document.getElementById('tbtn-all').classList.toggle('active',isAll);document.getElementById('tbtn-1팀')?.classList.toggle('active',!isAll&&filterTeam.has('1팀'));document.getElementById('tbtn-2팀')?.classList.toggle('active',!isAll&&filterTeam.has('2팀'));document.getElementById('tbtn-3팀')?.classList.toggle('active',!isAll&&filterTeam.has('3팀'));applyFilter();}
-function updateCounts(){const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));(el=>{if(el)el.textContent=vis.filter(d=>d.dong==='독산동').length})(document.getElementById('dcnt-독산동'));(el=>{if(el)el.textContent=vis.filter(d=>d.dong==='가산동').length})(document.getElementById('dcnt-가산동'));(el=>{if(el)el.textContent=vis.filter(d=>d.team==='1팀').length})(document.getElementById('tcnt-1팀'));(el=>{if(el)el.textContent=vis.filter(d=>d.team==='2팀').length})(document.getElementById('tcnt-2팀'));(el=>{if(el)el.textContent=vis.filter(d=>d.team==='3팀').length})(document.getElementById('tcnt-3팀'));}
+function updateCounts(){
+  const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));
+  (el=>{if(el)el.textContent=vis.filter(d=>d.dong==='독산동').length})(document.getElementById('dcnt-독산동'));(el=>{if(el)el.textContent=vis.filter(d=>d.dong==='가산동').length})(document.getElementById('dcnt-가산동'));
+  (el=>{if(el)el.textContent=vis.filter(d=>d.team==='1팀').length})(document.getElementById('tcnt-1팀'));(el=>{if(el)el.textContent=vis.filter(d=>d.team==='2팀').length})(document.getElementById('tcnt-2팀'));(el=>{if(el)el.textContent=vis.filter(d=>d.team==='3팀').length})(document.getElementById('tcnt-3팀'));
+  const filtered=RAW.filter(d=>{
+    if(!filterDong.has('all')&&!filterDong.has(d.dong))return false;
+    if(!filterTeam.has('all')&&!filterTeam.has(d.team))return false;
+    return true;
+  });
+  const done=loadDone();
+  const isFiltered=!filterTeam.has('all')||!filterDong.has('all');
+  const total=isFiltered?filtered.length:RAW.length;
+  const doneN=isFiltered?filtered.filter(d=>!!done[String(d.seq)]).length:Object.keys(done).length;
+  const pct=total?Math.round(doneN/total*100):0;
+  document.getElementById('sTotal').textContent=total;
+  document.getElementById('doneCount').textContent=doneN;
+  const pgFill=document.getElementById('pgFillDone');
+  const pgLbl=document.getElementById('pgLabelDone');
+  if(pgFill)pgFill.style.width=pct+'%';
+  const label=isFiltered?([...filterTeam].filter(t=>t!=='all').join('+')||[...filterDong].filter(t=>t!=='all').join('+')):'전체';
+  if(pgLbl)pgLbl.textContent=label+' '+doneN+'/'+total+' ('+pct+'%)';
+}
+
 function setActive(idx){if(activeIdx>=0)document.getElementById(`item-${activeIdx}`)?.classList.remove('active');activeIdx=idx;const el=document.getElementById(`item-${idx}`);if(el){el.classList.add('active');el.scrollIntoView({block:'nearest'});}}
 function fitAll(){if(!kakaoMap)return;const bounds=new kakao.maps.LatLngBounds();Object.values(geocoded).filter(Boolean).forEach(g=>bounds.extend(new kakao.maps.LatLng(g.lat,g.lng)));kakaoMap.setBounds(bounds,50);}
 
