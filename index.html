@@ -202,6 +202,23 @@ async function loadStationCoords(key){
 function loadStore(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return{}}}
 function saveStore(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
 function loadDone(){return loadStore(DONE_KEY)}
+function loadDoneDate(){return loadStore(DONE_KEY+'_date');}
+function setDoneDate(seq,dateStr){
+  const dates=loadDoneDate();
+  if(dateStr){
+    // 날짜 문자열(YYYY-MM-DD)을 ISO로 변환
+    dates[String(seq)]=new Date(dateStr).toISOString();
+    saveStore(DONE_KEY+'_date',dates);
+    // Supabase도 업데이트
+    const d=RAW.find(r=>r.seq===seq)||{};
+    fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?seq=eq.'+seq,{
+      method:'PATCH',
+      headers:{...SB_HEADERS,'Prefer':'return=minimal'},
+      body:JSON.stringify({done_at:new Date(dateStr).toISOString()})
+    }).catch(()=>{});
+  }
+}
+function getDoneDate(seq){const d=loadDoneDate()[String(seq)];return d?new Date(d).toLocaleDateString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit'}).replace(/\. /g,'.').replace('.',''):'';;}
 function saveDone(d){saveStore(DONE_KEY,d)}
 function loadCache(){return loadStore(CACHE_KEY)}
 function saveCache(c){saveStore(CACHE_KEY,c)}
@@ -293,7 +310,7 @@ async function sbLoadDone(){
 async function sbSetDone(d,isDone){
   try{
     let r;
-    if(isDone){r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({seq:d.seq,name:d.name,team:d.team})});}
+    if(isDone){r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE,{method:'POST',headers:{...SB_HEADERS,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({seq:d.seq,name:d.name,team:d.team,done_at:new Date().toISOString()})});}
     else{r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?seq=eq.'+d.seq,{method:'DELETE',headers:SB_HEADERS});}
     if(!r.ok){const err=await r.text();showToast('서버 저장 실패('+r.status+')','err');}
   }catch(e){showToast('서버 저장 실패','err');}
@@ -303,9 +320,22 @@ function toggleDone(idx){
   const done=loadDone(),key=String(RAW[idx].seq);
   done[key]?delete done[key]:(done[key]=true);
   const isDone=!!done[key];
+  // 날짜 기록
+  const dates=loadDoneDate();
+  if(isDone)dates[key]=new Date().toISOString();
+  else delete dates[key];
+  saveStore(DONE_KEY+'_date',dates);
   saveDone(done);applyDoneState(idx,isDone);
   const btn=document.getElementById('doneBtn-'+idx);
   if(btn){btn.style.background=isDone?'#22c55e':'#f1f5f9';btn.style.color=isDone?'#fff':'#64748b';btn.textContent=isDone?'✓ 조사완료 (취소)':'조사완료';}
+  // 날짜 입력 필드 동적 갱신
+  const dateWrap=document.getElementById('dateWrap-'+idx);
+  const dateInput=document.getElementById('dateInput-'+idx);
+  if(dateWrap){dateWrap.style.display=isDone?'flex':'none';}
+  if(dateInput&&isDone){
+    const today=new Date().toISOString().slice(0,10);
+    dateInput.value=today;
+  }
   sbSetDone(RAW[idx],isDone);
 }
 function applyDoneState(idx,isDone){
@@ -430,6 +460,13 @@ function addMarker(idx,lat,lng,d,_doneMap){
     <div style="font-size:10px;color:#999;margin-bottom:8px">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div>
     <div style="border-top:1px solid #f1f5f9;padding-top:8px;display:flex;flex-direction:column;gap:5px">
       <button id="doneBtn-${idx}" onclick="toggleDone(${idx})" style="width:100%;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;background:${isDone?'#22c55e':'#f1f5f9'};color:${isDone?'#fff':'#64748b'}">${isDone?'✓ 조사완료 (취소)':'조사완료'}</button>
+      ${isDone?`<div id="dateWrap-${idx}" style="display:flex;align-items:center;gap:5px;margin-top:4px">
+        <span style="font-size:10px;color:#22c55e;font-weight:600;white-space:nowrap">📅 점검일자</span>
+        <input type="date" id="dateInput-${idx}"
+          value="${(()=>{const dt=loadDoneDate()[String(d.seq)];return dt?new Date(dt).toISOString().slice(0,10):'';})()}"
+          onchange="setDoneDate(RAW[${idx}].seq,this.value)"
+          style="flex:1;padding:3px 6px;border:1px solid #86efac;border-radius:5px;font-size:11px;color:#15803d;background:#f0fdf4;outline:none;cursor:pointer">
+      </div>`:''}
       <div style="margin-top:2px">
         <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600">📝 점검 메모</div>
         <textarea id="memo-${idx}" placeholder="점검 결과, 특이사항 등 입력..." oninput="setMemo(RAW[${idx}].seq,this.value)" style="width:100%;height:60px;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;font-size:11px;resize:vertical;outline:none;font-family:sans-serif;color:#334155;background:#f8fafc;box-sizing:border-box" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">${getMemo(d.seq)}</textarea>
@@ -545,7 +582,7 @@ async function exportExcel(){
     await loadSheetJS();
     const done=loadDone();
     const stamp=new Date().toISOString().slice(0,10).replace(/-/g,'');
-    const allRows=RAW.map((d,i)=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr,'조사완료':done[String(d.seq)]?'○':'','메모':getMemo(d.seq)}));
+    const allRows=RAW.map((d,i)=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr,'조사완료':done[String(d.seq)]?'○':'','점검일자':getDoneDate(d.seq),'메모':getMemo(d.seq)}));
     const doneRows=RAW.filter(d=>!!done[String(d.seq)]).map(d=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr}));
     const undoneRows=RAW.filter(d=>!done[String(d.seq)]).map(d=>({'팀':d.team,'건물명':d.name,'행정동':d.dong,'층수':d.floors,'동수':d.buildings,'주소':d.addr}));
     const teams=[...new Set(RAW.map(d=>d.team))];
@@ -553,7 +590,7 @@ async function exportExcel(){
     summary.push({'팀':'합계','전체':RAW.length,'완료':Object.keys(done).length,'미완료':RAW.length-Object.keys(done).length,'완료율':RAW.length?Math.round(Object.keys(done).length/RAW.length*100)+'%':'0%'});
     const wb=XLSX.utils.book_new();
     const setW=(ws,w)=>{ws['!cols']=w.map(v=>({wch:v}));};
-    const ws1=XLSX.utils.json_to_sheet(allRows);setW(ws1,[8,25,8,8,6,40,8,30]);
+    const ws1=XLSX.utils.json_to_sheet(allRows);setW(ws1,[8,25,8,8,6,40,8,12,30]);
     const ws2=XLSX.utils.json_to_sheet(doneRows.length?doneRows:[{'안내':'완료 없음'}]);setW(ws2,[8,25,8,8,6,40]);
     const ws3=XLSX.utils.json_to_sheet(undoneRows.length?undoneRows:[{'안내':'미완료 없음'}]);setW(ws3,[8,25,8,8,6,40]);
     const ws4=XLSX.utils.json_to_sheet(summary);setW(ws4,[8,8,8,8,10]);
