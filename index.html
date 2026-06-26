@@ -337,11 +337,21 @@ async function sbSetMemo(seq,name,team,text){
 
 async function sbLoadDone(){
   try{
-    const r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?select=seq',{headers:SB_HEADERS});
+    const r=await fetch(SB_URL+'/rest/v1/'+SB_TABLE+'?select=seq,done_at',{headers:SB_HEADERS});
     if(!r.ok)throw new Error(r.status);
     const rows=await r.json();
-    const done={};rows.forEach(row=>{done[String(row.seq)]=true;});
-    saveStore(DONE_KEY,done);return done;
+    const done={};
+    const dates=loadDoneDate();
+    rows.forEach(row=>{
+      done[String(row.seq)]=true;
+      // done_at이 있으면 로컬에도 저장 (다른 기기에서 기록된 날짜 복원)
+      if(row.done_at&&!dates[String(row.seq)]){
+        dates[String(row.seq)]=row.done_at;
+      }
+    });
+    saveStore(DONE_KEY,done);
+    saveStore(DONE_KEY+'_date',dates);
+    return done;
   }catch(e){showToast('서버 연결 실패 — 로컬 사용','err');return loadStore(DONE_KEY);}
 }
 async function sbSetDone(d,isDone){
@@ -508,8 +518,24 @@ function addMarker(idx,lat,lng,d,_doneMap){
           style="flex:1;padding:3px 6px;border:1px solid #86efac;border-radius:5px;font-size:11px;color:#15803d;background:#f0fdf4;outline:none;cursor:pointer">
       </div>`:''}
       <div style="margin-top:2px">
-        <div style="font-size:10px;color:#94a3b8;margin-bottom:3px;font-weight:600">📝 점검 메모</div>
-        <textarea id="memo-${idx}" placeholder="점검 결과, 특이사항 등 입력..." oninput="setMemo(RAW[${idx}].seq,this.value)" style="width:100%;height:60px;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;font-size:11px;resize:vertical;outline:none;font-family:sans-serif;color:#334155;background:#f8fafc;box-sizing:border-box" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">${getMemo(d.seq)}</textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <span style="font-size:10px;color:#94a3b8;font-weight:600">📝 점검 메모</span>
+          <span id="memoStatus-${idx}" style="font-size:9px;color:#94a3b8"></span>
+        </div>
+        <textarea id="memo-${idx}"
+          placeholder="점검 결과, 특이사항 등 입력..."
+          oninput="onMemoInput(${idx},this)"
+          style="width:100%;height:68px;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;font-size:11px;resize:vertical;outline:none;font-family:sans-serif;color:#334155;background:#f8fafc;box-sizing:border-box"
+          onfocus="this.style.borderColor='#3b82f6'"
+          onblur="this.style.borderColor='#e2e8f0'"
+        >${getMemo(d.seq)}</textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;gap:4px">
+          <span id="memoLen-${idx}" style="font-size:9px;color:#cbd5e1">${getMemo(d.seq).length}/200자</span>
+          <div style="display:flex;gap:4px">
+            <button onclick="saveMemoNow(${idx})" style="padding:3px 9px;border:1px solid #bfdbfe;border-radius:5px;font-size:10px;cursor:pointer;background:#eff6ff;color:#1d4ed8;font-weight:600">💾 저장</button>
+            <button onclick="deleteMemo(${idx})" style="padding:3px 9px;border:1px solid #fecaca;border-radius:5px;font-size:10px;cursor:pointer;background:#fef2f2;color:#dc2626;font-weight:600">🗑 삭제</button>
+          </div>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
         <button onclick="openRvFromPopup(new kakao.maps.LatLng(${lat},${lng}))" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 로드뷰</button>
