@@ -72,6 +72,21 @@ h1{font-size:14px;font-weight:600}
 .mob-toggle{display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--ac);color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 @media(max-width:600px){.mob-toggle{display:block}}
 @media(max-width:600px){.sidebar.map-mode{display:none!important}.map-wrap.list-mode{display:none!important}}
+/* 지도 검색 */
+.map-search{position:absolute;top:10px;left:10px;z-index:9999;display:none;flex-direction:column;gap:4px;pointer-events:auto;width:240px}
+.map-search-row{display:flex;gap:4px}
+.map-search input{flex:1;padding:7px 10px;border:1px solid var(--bd2);border-radius:var(--r);font-size:12px;background:var(--sur);color:var(--tx);outline:none;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.map-search input:focus{border-color:var(--ac)}
+.map-search-btn{padding:7px 10px;border:1px solid var(--bd2);border-radius:var(--r);background:var(--sur);color:var(--tx);font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);white-space:nowrap;font-weight:600}
+.map-search-btn:hover{background:var(--sur2)}
+.map-search-results{background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.5);max-height:200px;overflow-y:auto;display:none}
+.map-search-results::-webkit-scrollbar{width:3px}
+.map-search-results::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.map-search-item{padding:8px 10px;font-size:11px;cursor:pointer;border-bottom:1px solid var(--bd);transition:background .1s}
+.map-search-item:last-child{border-bottom:none}
+.map-search-item:hover{background:var(--sur2)}
+.map-search-item .si-name{font-weight:600;color:var(--tx);margin-bottom:2px}
+.map-search-item .si-addr{color:var(--mt);font-size:10px}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--sur);border:1px solid var(--bd2);border-radius:var(--r);padding:9px 14px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:9999;transform:translateY(50px);opacity:0;transition:all .25s;max-width:280px}
 .toast.show{transform:translateY(0);opacity:1}.toast.ok{border-color:var(--lo)}.toast.err{border-color:var(--hi)}
 #diagPanel{display:none;position:absolute;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;z-index:9999}
@@ -136,9 +151,18 @@ h1{font-size:14px;font-weight:600}
     </div>
   </div>
   <div class="map-wrap">
+    <div class="map-search" id="mapSearch">
+      <div class="map-search-row">
+        <input type="text" id="mapSearchInput" placeholder="장소·주소 검색..." onkeydown="if(event.key==='Enter')searchMap()">
+        <button class="map-search-btn" onclick="searchMap()">🔍</button>
+        <button class="map-search-btn" onclick="closeMapSearch()" style="color:var(--mt)">✕</button>
+      </div>
+      <div class="map-search-results" id="mapSearchResults"></div>
+    </div>
     <div class="map-ph" id="mapPh"><div class="big">🗺️</div><div>지도 로딩 중...</div></div>
     <div id="map"></div>
     <div class="map-toolbar" id="mapToolbar">
+      <button class="tool-btn" id="btnMapSearch" onclick="toggleMapSearch()">🔍 검색</button>
       <button class="tool-btn" id="btnEdu" onclick="toggleEdu()">🏫 교육시설</button>
       <button class="tool-btn" id="btnExcl" onclick="toggleExcluded()">⚫ 제외 대상</button>
       <button class="tool-btn" id="btnSat" onclick="toggleSat()">🛰️ 위성</button>
@@ -187,7 +211,7 @@ const DONE_KEY='gc_done_v2';
 const MEMO_KEY='gc_memo_v1';
 const TEAM_COLOR={'1팀':'#3b82f6','2팀':'#ef4444','3팀':'#a78bfa','시흥센터':'#3b82f6'};
 const TEAM_CLASS={'1팀':'t1','2팀':'t2','3팀':'t3','시흥센터':'t1'};
-const EDU_RAW=[];
+const EDU_RAW=[{"name": "가산중학교", "detail": "중학교", "addr": "서울특별시 금천구 시흥대로115길 48(독산동)"}, {"name": "금천고등학교", "detail": "고등학교", "addr": "서울특별시 금천구 시흥대로38길 26(시흥동)"}, {"name": "금천문화예술정보학교", "detail": "각종학교", "addr": "서울특별시 금천구 남부순환로126길 25(독산동)"}, {"name": "난곡중학교", "detail": "중학교", "addr": "서울특별시 금천구 문성로 67(독산동)"}, {"name": "독산고등학교", "detail": "고등학교", "addr": "서울특별시 금천구 문성로 64(독산동)"}, {"name": "동산유치원", "detail": "유치원", "addr": "서울특별시 금천구 시흥대로152길 35(독산동)"}, {"name": "동일유치원", "detail": "유치원", "addr": "서울특별시 금천구 탑골로10길 45(시흥동)"}, {"name": "럭키유치원", "detail": "유치원", "addr": "서울특별시 금천구 시흥대로 47(시흥동)"}, {"name": "문성중학교", "detail": "중학교", "addr": "서울특별시 금천구 독산로102길 78(독산동)"}, {"name": "국립전통예술중학교", "detail": "각종학교", "addr": "서울특별시 금천구 시흥대로38길 62(시흥동)"}, {"name": "서울불교대학원대학교[본교(서울금천)]", "detail": "대학원", "addr": "서울특별시 금천구 독산로70길 8(독산동)"}];
 const EDU_TYPE_ICON={'유치원':'🧸','초등학교':'🎒','중학교':'📚','고등학교':'🎓','대학원':'🏛️','각종학교':'🏫'};
 
 let kakaoMap=null,overlays={},iwOpen=null,geocoded={},lastIw=null,activeMarkerEl=null;
@@ -383,7 +407,7 @@ function initKakaoMap(jsKey){
         try{
           document.getElementById('mapPh').style.display='none';
           kakaoMap=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(37.463,126.900),level:5});
-          document.getElementById('mapToolbar').style.display='flex';
+          document.getElementById('mapToolbar').style.display='flex';document.getElementById('mapSearch').style.display='none';
           setupListeners();resolve();
         }catch(e){reject(new Error('MAP_CREATE'));}
       });
@@ -393,6 +417,9 @@ function initKakaoMap(jsKey){
 }
 function setupListeners(){
   kakao.maps.event.addListener(kakaoMap,'click',(e)=>{
+    // 검색 결과 닫기
+    const sr=document.getElementById('mapSearchResults');
+    if(sr&&sr.style.display==='block')sr.style.display='none';
     if(rvMode){openRvAt(e.latLng);setRvMode(false);return;}
     if(distMode){distPath.push(e.latLng);addDistMarker(e.latLng);updateDistLine();}
   });
@@ -672,6 +699,83 @@ async function exportExcel(){
     XLSX.writeFile(wb,`점검결과_${stamp}.xlsx`);
     showToast('📊 엑셀 저장 완료','ok');
   }catch(e){showToast('엑셀 출력 실패:'+e.message,'err');}
+}
+
+// 지도 검색
+let searchMarkers=[];
+
+function toggleMapSearch(){
+  const wrap=document.getElementById('mapSearch');
+  const btn=document.getElementById('btnMapSearch');
+  const isOpen=wrap.style.display==='flex';
+  if(isOpen){closeMapSearch();}
+  else{
+    wrap.style.display='flex';
+    btn.classList.add('on');
+    setTimeout(()=>document.getElementById('mapSearchInput').focus(),50);
+  }
+}
+function closeMapSearch(){
+  document.getElementById('mapSearch').style.display='none';
+  document.getElementById('btnMapSearch').classList.remove('on');
+  document.getElementById('mapSearchResults').style.display='none';
+  clearSearchMarkers();
+}
+function clearSearchMarkers(){
+  searchMarkers.forEach(m=>m.setMap(null));
+  searchMarkers=[];
+}
+async function searchMap(){
+  const q=document.getElementById('mapSearchInput').value.trim();
+  if(!q){showToast('검색어를 입력하세요','err');return;}
+  clearSearchMarkers();
+  const resultsEl=document.getElementById('mapSearchResults');
+  resultsEl.innerHTML='<div style="padding:8px 10px;font-size:11px;color:var(--mt)">검색 중...</div>';
+  resultsEl.style.display='block';
+  try{
+    const r=await fetch(
+      'https://dapi.kakao.com/v2/local/search/keyword.json?query='+encodeURIComponent(q)+'&size=10',
+      {headers:{Authorization:'KakaoAK '+REST_KEY}}
+    );
+    const d=await r.json();
+    if(!d.documents?.length){
+      // 주소 검색 폴백
+      const r2=await fetch(
+        'https://dapi.kakao.com/v2/local/search/address.json?query='+encodeURIComponent(q)+'&size=10',
+        {headers:{Authorization:'KakaoAK '+REST_KEY}}
+      );
+      const d2=await r2.json();
+      if(!d2.documents?.length){resultsEl.innerHTML='<div style="padding:8px 10px;font-size:11px;color:var(--mt)">검색 결과 없음</div>';return;}
+      renderSearchResults(d2.documents.map(doc=>({name:doc.address_name,addr:doc.road_address?.address_name||'',lat:+doc.y,lng:+doc.x})));
+      return;
+    }
+    renderSearchResults(d.documents.map(doc=>({name:doc.place_name,addr:doc.road_address_name||doc.address_name,lat:+doc.y,lng:+doc.x})));
+  }catch(e){resultsEl.innerHTML='<div style="padding:8px 10px;font-size:11px;color:var(--hi)">검색 실패</div>';}
+}
+function renderSearchResults(results){
+  const el=document.getElementById('mapSearchResults');
+  el.innerHTML='';
+  el.style.display='block';
+  results.forEach((r,i)=>{
+    // 마커 표시
+    const markerEl=document.createElement('div');
+    markerEl.style.cssText='width:24px;height:24px;border-radius:50%;background:#f59e0b;border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.5);cursor:pointer';
+    markerEl.textContent=i+1;
+    const ov=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(r.lat,r.lng),content:markerEl,zIndex:50});
+    ov.setMap(kakaoMap);
+    searchMarkers.push(ov);
+    // 목록 항목
+    const item=document.createElement('div');
+    item.className='map-search-item';
+    item.innerHTML=`<div class="si-name">${i+1}. ${esc(r.name)}</div><div class="si-addr">${esc(r.addr)}</div>`;
+    item.onclick=()=>{kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(r.lat,r.lng));};
+    el.appendChild(item);
+  });
+  // 첫 번째 결과로 이동
+  if(results.length){
+    kakaoMap.setLevel(4);
+    kakaoMap.panTo(new kakao.maps.LatLng(results[0].lat,results[0].lng));
+  }
 }
 
 function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.className='toast',4000);}
