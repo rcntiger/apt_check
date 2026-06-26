@@ -549,6 +549,10 @@ function addMarker(idx,lat,lng,d,_doneMap){
       </div>
     </div>`;
   const iw=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:iwEl,yAnchor:1.4,zIndex:100});
+  // 팝업 내 마우스 이벤트가 지도로 전파되지 않도록 차단 (텍스트 선택 가능하게)
+  ['mousedown','mousemove','mouseup','dblclick','touchstart','touchmove','touchend'].forEach(evt=>{
+    iwEl.addEventListener(evt,(e)=>e.stopPropagation());
+  });
   el.addEventListener('click',()=>{
     clearRoadHighlight();
     if(iwOpen)iwOpen.setMap(null);
