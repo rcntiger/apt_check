@@ -16,7 +16,7 @@ h1{font-size:14px;font-weight:600}
 .badge.cnt{margin-left:auto;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);color:var(--lo)}
 .layout{display:flex;flex:1;overflow:hidden;min-height:0}
 .sidebar{width:300px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden}
-@media(max-width:600px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;max-height:44vh;border-right:none;border-bottom:1px solid var(--bd);overflow-y:auto;flex-shrink:0}.map-wrap{flex:1;min-height:0}#map{width:100%;height:100%}.map-toolbar{top:6px!important;right:6px;gap:4px}}
+@media(max-width:600px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;max-height:44vh;border-right:none;border-bottom:1px solid var(--bd);overflow-y:auto;flex-shrink:0}.map-wrap{flex:1;min-height:0}#map{width:100%;height:100%}.map-toolbar{top:6px!important;right:6px;gap:4px}.map-search{left:6px!important;right:6px!important;top:6px!important;width:auto!important}.map-wrap.search-open .map-toolbar{top:58px!important}}
 .map-wrap{flex:1;position:relative;min-height:0}
 #map{width:100%;height:100%;min-height:0}
 .map-ph{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mt);font-size:13px}
@@ -143,11 +143,12 @@ h1{font-size:14px;font-weight:600}
       <div class="ptitle">🔍 검색</div>
       <div class="search-wrap"><input type="text" id="searchInput" placeholder="단지명 검색..." oninput="applyFilter()"></div>
     </div>
-    <div class="list" id="listEl">
-      <div style="text-align:center;color:var(--mt);font-size:12px;padding:24px 12px;line-height:1.9">⏳ 지도 로딩 중...<br><span style="font-size:10px;color:#444">잠시만 기다려주세요</span></div>
+    <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0">
+      <button id="tabApt" onclick="switchTab('apt')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:700;background:var(--ac);color:#fff;border:none;cursor:pointer;border-radius:0">🏢 아파트</button>
+      <button id="tabEdu" onclick="switchTab('edu')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:700;background:var(--sur2);color:var(--mt);border:none;cursor:pointer;border-radius:0">🏫 교육시설</button>
     </div>
-    <div id="eduListWrap" style="display:none;flex-direction:column;border-top:1px solid var(--bd)">
-      <div class="panel" style="padding:8px 12px"><div class="ptitle">🏫 교육시설 목록</div></div>
+    <div class="list" id="listEl"></div>
+    <div id="eduListWrap" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0">
       <div class="list" id="eduListEl"></div>
     </div>
   </div>
@@ -457,6 +458,8 @@ async function startLoad(){
   RAW.forEach((_,i)=>{if(doneMap[String(RAW[i].seq)])applyDoneState(i,true);});
   updateDoneCount();applyFilter();fitAll();
   showToast(`완료 ✓ ${ok}개 성공 / ${fail}개 실패`,ok>fail?'ok':'err');
+  // 교육시설 자동 ON
+  if(!eduOn)toggleEdu();
 }
 
 function addMarker(idx,lat,lng,d,_doneMap){
@@ -675,8 +678,24 @@ async function loadExcluded(){
   showToast(`제외 대상 ${ok}개 표시`,'ok');
 }
 
-function toggleEdu(){const btn=document.getElementById('btnEdu'),wrap=document.getElementById('eduListWrap');if(eduOn){eduOverlays.forEach(o=>o.setMap(null));eduOn=false;btn.classList.remove('on');btn.textContent='🏫 교육';wrap.style.display='none';}else{eduOn=true;if(!eduLoaded)loadEduMarkers();else{eduOverlays.forEach(o=>o.setMap(kakaoMap));btn.classList.add('on');btn.textContent='🏫 교육ON';wrap.style.display='flex';}}}
-function renderEduList(){const listEl=document.getElementById('eduListEl');listEl.innerHTML='';EDU_RAW.forEach((d,i)=>{if(!d._lat)return;const icon=EDU_TYPE_ICON[d.detail]||'🏫';const div=document.createElement('div');div.className='item';div.style.borderLeft='3px solid #0ea5e9';div.innerHTML=`<div class="ibody"><div class="iname">${icon} ${esc(d.name)}</div><div class="isub">${d.detail} · ${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div></div>`;div.addEventListener('click',()=>{if(kakaoMap){kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(d._lat,d._lng));if(eduIws[i]){if(iwOpen)iwOpen.setMap(null);eduIws[i].setMap(kakaoMap);iwOpen=eduIws[i];}}});listEl.appendChild(div);});document.getElementById('eduListWrap').style.display='flex';}
+function switchTab(tab){
+  const aptList=document.getElementById('listEl');
+  const eduList=document.getElementById('eduListWrap');
+  const tabApt=document.getElementById('tabApt');
+  const tabEdu=document.getElementById('tabEdu');
+  if(tab==='apt'){
+    aptList.style.display='';eduList.style.display='none';
+    tabApt.style.background='var(--ac)';tabApt.style.color='#fff';
+    tabEdu.style.background='var(--sur2)';tabEdu.style.color='var(--mt)';
+  }else{
+    aptList.style.display='none';eduList.style.display='flex';
+    tabEdu.style.background='var(--ac)';tabEdu.style.color='#fff';
+    tabApt.style.background='var(--sur2)';tabApt.style.color='var(--mt)';
+    if(!eduLoaded&&!eduOn)toggleEdu();
+  }
+}
+function toggleEdu(){const btn=document.getElementById('btnEdu');if(eduOn){eduOverlays.forEach(o=>o.setMap(null));eduOn=false;btn.classList.remove('on');btn.textContent='🏫 교육';}else{eduOn=true;if(!eduLoaded)loadEduMarkers();else{eduOverlays.forEach(o=>o.setMap(kakaoMap));btn.classList.add('on');btn.textContent='🏫 교육ON';}}}
+function renderEduList(){const listEl=document.getElementById('eduListEl');listEl.innerHTML='';EDU_RAW.forEach((d,i)=>{if(!d._lat)return;const icon=EDU_TYPE_ICON[d.detail]||'🏫';const div=document.createElement('div');div.className='item';div.style.borderLeft='3px solid #0ea5e9';div.innerHTML=`<div class="ibody"><div class="iname">${icon} ${esc(d.name)}</div><div class="isub">${d.detail} · ${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div></div>`;div.addEventListener('click',()=>{if(kakaoMap){kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(d._lat,d._lng));if(eduIws[i]){if(iwOpen)iwOpen.setMap(null);eduIws[i].setMap(kakaoMap);iwOpen=eduIws[i];}}});listEl.appendChild(div);});}
 async function loadEduMarkers(){const btn=document.getElementById('btnEdu');btn.textContent='⏳ 로딩 중...';btn.style.pointerEvents='none';const headers={Authorization:`KakaoAK ${REST_KEY}`};let ok=0;for(const d of EDU_RAW){try{const icon=EDU_TYPE_ICON[d.detail]||'🏫';let geo=null;const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(d.addr)}&size=1`,{headers});const j=await r.json();if(j.documents?.[0])geo={lat:+j.documents[0].y,lng:+j.documents[0].x};if(!geo){const r2=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('금천구 '+d.name)}&size=1`,{headers});const j2=await r2.json();if(j2.documents?.[0])geo={lat:+j2.documents[0].y,lng:+j2.documents[0].x};}if(!geo)continue;d._lat=geo.lat;d._lng=geo.lng;const el=document.createElement('div');el.className='edu-marker';el.textContent=icon;const iwEl=document.createElement('div');iwEl.style.cssText='background:#fff;border-radius:8px;padding:10px 14px;min-width:200px;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-family:sans-serif';iwEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;font-weight:700;color:#0ea5e9;background:#e0f2fe;padding:2px 7px;border-radius:10px">🏫 교육시설</span><span style="cursor:pointer;color:#999;font-size:16px" onclick="closeIw()">✕</span></div><div style="font-size:13px;font-weight:700;margin-bottom:5px;color:#111">${esc(d.name)}</div><div style="font-size:11px;color:#555;margin-bottom:2px">${icon} ${d.detail}</div><div style="font-size:10px;color:#999;margin-bottom:8px">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div><div style="border-top:1px solid #f1f5f9;padding-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px"><button onclick="openRvFromPopup(new kakao.maps.LatLng(${geo.lat},${geo.lng}))" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 로드뷰</button><button onclick="openNaviFrom(${geo.lat},${geo.lng},'${d.name.replace(/'/g,'').substring(0,15)}','fs')" style="padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:11px;cursor:pointer;background:#fffbeb;color:#92400e;font-weight:600">🗺️ 길찾기</button></div>`;const iw=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:iwEl,yAnchor:1.4,zIndex:100});el.addEventListener('click',()=>{if(iwOpen)iwOpen.setMap(null);if(activeMarkerEl)activeMarkerEl.classList.remove('active-mk');iw.setMap(kakaoMap);iwOpen=iw;kakaoMap.panTo(new kakao.maps.LatLng(geo.lat,geo.lng));});const ov=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:el,zIndex:15});ov.setMap(kakaoMap);eduOverlays.push(ov);eduIws.push(iw);ok++;}catch(e){}await sleep(80);}eduLoaded=true;btn.style.pointerEvents='auto';renderEduList();showToast(`🏫 교육시설 ${ok}개 표시`,'ok');btn.textContent='🏫 교육ON';btn.classList.add('on');}
 
 function loadSheetJS(){return new Promise((resolve,reject)=>{if(window.XLSX){resolve();return;}const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=resolve;s.onerror=()=>{const s2=document.createElement('script');s2.src='https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';s2.onload=resolve;s2.onerror=reject;document.head.appendChild(s2);};document.head.appendChild(s);});}
@@ -715,6 +734,7 @@ function toggleMapSearch(){
   else{
     wrap.style.display='flex';
     btn.classList.add('on');
+    document.querySelector('.map-wrap')?.classList.add('search-open');
     setTimeout(()=>document.getElementById('mapSearchInput').focus(),50);
   }
 }
@@ -722,6 +742,7 @@ function closeMapSearch(){
   document.getElementById('mapSearch').style.display='none';
   document.getElementById('btnMapSearch').classList.remove('on');
   document.getElementById('mapSearchResults').style.display='none';
+  document.querySelector('.map-wrap')?.classList.remove('search-open');
   clearSearchMarkers();
 }
 function clearSearchMarkers(){
