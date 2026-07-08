@@ -132,8 +132,8 @@ h1{font-size:14px;font-weight:600}
       <div class="pglabel" id="pgLabel"></div>
       <div class="stats-row dt-stats">
         <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
-        <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
-        <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
+        <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">표시됨</div></div>
+        <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">미표시</div></div>
         <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
       </div>
       <div class="dt-stats" style="margin-top:8px">
@@ -144,7 +144,7 @@ h1{font-size:14px;font-weight:600}
       </div>
       <div class="mob-stats" id="mobStats">
         <div class="mob-stats-bar"><div class="mob-stats-fill" id="mobStatsFill"></div></div>
-        <div class="mob-stats-label" id="mobStatsLabel">전체 0 · 변환 0 · 실패 0 · 완료 0 (0%)</div>
+        <div class="mob-stats-label" id="mobStatsLabel">전체 0 · 표시됨 0 · 미표시 0 · 완료 0 (0%)</div>
       </div>
       <button onclick="exportExcel()" style="width:100%;margin-top:8px;padding:7px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📊 점검결과 엑셀 출력</button>
     </div>
@@ -632,7 +632,7 @@ function renderItem(d,i,ok,_doneMap){
   const div=document.createElement('div');
   div.className='item'+(isHidden(d)?' hidden':'')+(isDone?' done':'');
   div.id='item-'+i;
-  div.innerHTML=`<div class="team-dot" style="background:${TEAM_COLOR[d.team]||'#3b82f6'}"></div><div class="ibody"><div class="iname">${esc(d.name)}</div><div class="isub">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div><div class="tags"><span class="itag ${TEAM_CLASS[d.team]||'t1'}">${d.team}</span><span class="itag dong">${d.dong}</span><span class="itag ${ok?TEAM_CLASS[d.team]||'t1':'err'}">${ok?d.floors:'변환실패'}</span><span class="done-badge">✓ 완료</span></div></div>`;
+  div.innerHTML=`<div class="team-dot" style="background:${TEAM_COLOR[d.team]||'#3b82f6'}"></div><div class="ibody"><div class="iname">${esc(d.name)}</div><div class="isub">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div><div class="tags"><span class="itag ${TEAM_CLASS[d.team]||'t1'}">${d.team}</span><span class="itag dong">${d.dong}</span><span class="itag ${ok?TEAM_CLASS[d.team]||'t1':'err'}">${ok?d.floors:'미표시'}</span><span class="done-badge">✓ 완료</span></div></div>`;
   div.addEventListener('click',()=>{
     setActive(i);
     if(geocoded[i]&&kakaoMap){
@@ -704,7 +704,7 @@ function syncMobStats(total,doneN,pct,label){
   const ok=document.getElementById('sOk')?.textContent||'0';
   const fail=document.getElementById('sFail')?.textContent||'0';
   const fill=document.getElementById('mobStatsFill');if(fill)fill.style.width=pct+'%';
-  lbl.innerHTML=`${label} <b style="color:var(--ac)">${total}</b> · 변환 <b style="color:var(--lo)">${ok}</b> · 실패 <b style="color:var(--hi)">${fail}</b> · 완료 <b style="color:#22c55e">${doneN}</b> (${pct}%)`;
+  lbl.innerHTML=`${label} <b style="color:var(--ac)">${total}</b> · 표시됨 <b style="color:var(--lo)">${ok}</b> · 미표시 <b style="color:var(--hi)">${fail}</b> · 완료 <b style="color:#22c55e">${doneN}</b> (${pct}%)`;
 }
 
 function setActive(idx){if(activeIdx>=0)document.getElementById(`item-${activeIdx}`)?.classList.remove('active');activeIdx=idx;const el=document.getElementById(`item-${idx}`);if(el){el.classList.add('active');el.scrollIntoView({block:'nearest'});}}
