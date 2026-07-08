@@ -79,6 +79,17 @@ h1{font-size:14px;font-weight:600}
 .mob-sel:focus{border-color:var(--ac)}
 .mob-sel option{color:#111;background:#fff}
 @media(max-width:600px){.mob-filter{display:block}.panel.dt-filter{display:none}}
+/* 정렬 드롭다운 (검색창 오른쪽) — PC·모바일 공통 */
+.mob-sort{display:block;flex:0 0 auto;width:auto;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:0 8px;font-size:12px;font-weight:600;outline:none;cursor:pointer}
+.mob-sort:focus{border-color:var(--ac)}
+.mob-sort option{color:#111;background:#fff}
+/* 모바일: 검색 아이콘·라벨을 검색창 안으로 이동 */
+.search-ic{display:none}
+@media(max-width:600px){
+  .search-title{display:none}
+  .search-ic{display:block;position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;opacity:.6;line-height:1}
+  .search-ibox input{padding-left:30px!important}
+}
 /* 지도 검색 */
 .map-search{position:absolute;top:10px;left:10px;z-index:9999;display:none;flex-direction:column;gap:4px;pointer-events:auto;width:240px}
 .map-search-row{display:flex;gap:4px}
@@ -161,8 +172,18 @@ h1{font-size:14px;font-weight:600}
       </div>
     </div>
     <div class="panel">
-      <div class="ptitle">🔍 검색</div>
-      <div class="search-wrap"><input type="text" id="searchInput" placeholder="단지명 검색..." oninput="applyFilter()"></div>
+      <div class="ptitle search-title">🔍 검색</div>
+      <div class="search-wrap" style="display:flex;gap:6px;align-items:stretch">
+        <div class="search-ibox" style="flex:1;min-width:0;position:relative">
+          <span class="search-ic">🔍</span>
+          <input type="text" id="searchInput" placeholder="단지명 검색..." oninput="applyFilter()" style="width:100%">
+        </div>
+        <select class="mob-sort" id="selSort" onchange="setSort(this.value)" aria-label="정렬">
+          <option value="default">↕ 정렬</option>
+          <option value="name">이름순</option>
+          <option value="addr">주소순</option>
+        </select>
+      </div>
     </div>
     <div style="display:flex;border-bottom:1px solid var(--bd);flex-shrink:0">
       <button id="tabApt" onclick="switchTab('apt')" style="flex:1;padding:7px 4px;font-size:11px;font-weight:700;background:var(--ac);color:#fff;border:none;cursor:pointer;border-radius:0">🏢 아파트</button>
@@ -633,6 +654,16 @@ function toggleTeam(g){if(g==='all')filterTeam=new Set(['all']);else{filterTeam.
 // 드롭다운 선택(단일 선택)
 function setDong(val){filterDong=val==='all'?new Set(['all']):new Set([val]);syncFilterButtons();applyFilter();}
 function setTeam(val){filterTeam=val==='all'?new Set(['all']):new Set([val]);syncFilterButtons();applyFilter();}
+// 목록 정렬 (이름/주소) — 기존 DOM 노드를 재배치하여 상태 보존
+let sortMode='default';
+function applySort(){
+  const listEl=document.getElementById('listEl');if(!listEl)return;
+  const idxs=RAW.map((_,i)=>i);
+  if(sortMode==='name')idxs.sort((a,b)=>RAW[a].name.localeCompare(RAW[b].name,'ko'));
+  else if(sortMode==='addr')idxs.sort((a,b)=>(RAW[a].addr||'').localeCompare(RAW[b].addr||'','ko'));
+  idxs.forEach(i=>{const el=document.getElementById('item-'+i);if(el)listEl.appendChild(el);});
+}
+function setSort(mode){sortMode=mode;applySort();}
 function updateCounts(){
   const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));
   (el=>{if(el)el.textContent=vis.filter(d=>d.dong==='독산동').length})(document.getElementById('dcnt-독산동'));(el=>{if(el)el.textContent=vis.filter(d=>d.dong==='가산동').length})(document.getElementById('dcnt-가산동'));
