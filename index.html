@@ -73,6 +73,12 @@ h1{font-size:14px;font-weight:600}
 @media(max-width:600px){.mob-toggle{display:block}}
 @media(max-width:600px){.sidebar.map-mode{display:none!important}.map-wrap.list-mode{display:none!important}.map-wrap{display:none}.sidebar{max-height:calc(100dvh - 72px)!important;padding-bottom:60px}.mob-toggle{display:block}}
 @media(max-width:600px){.layout.mob-map-active .map-wrap{display:flex!important}.layout.mob-map-active .sidebar{display:none!important}}
+/* 모바일 필터 드롭다운 (행정동+조사팀 한 줄) */
+.mob-filter{display:none}
+.mob-sel{flex:1;min-width:0;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:9px 8px;font-size:12px;font-weight:600;outline:none;cursor:pointer}
+.mob-sel:focus{border-color:var(--ac)}
+.mob-sel option{color:#111;background:#fff}
+@media(max-width:600px){.mob-filter{display:block}.panel.dt-filter{display:none}}
 /* 지도 검색 */
 .map-search{position:absolute;top:10px;left:10px;z-index:9999;display:none;flex-direction:column;gap:4px;pointer-events:auto;width:240px}
 .map-search-row{display:flex;gap:4px}
@@ -120,7 +126,22 @@ h1{font-size:14px;font-weight:600}
       </div>
       <button onclick="exportExcel()" style="width:100%;margin-top:8px;padding:7px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📊 점검결과 엑셀 출력</button>
     </div>
-    <div class="panel">
+    <div class="panel mob-filter">
+      <div class="filter-row" style="gap:6px">
+        <select class="mob-sel" id="selDong" onchange="setDong(this.value)" aria-label="행정동 선택">
+          <option value="all">📍 행정동 · 전체</option>
+          <option value="독산동">독산동</option>
+          <option value="가산동">가산동</option>
+        </select>
+        <select class="mob-sel" id="selTeam" onchange="setTeam(this.value)" aria-label="조사팀 선택">
+          <option value="all">👥 조사팀 · 전체</option>
+          <option value="1팀">🔵 1팀</option>
+          <option value="2팀">🔴 2팀</option>
+          <option value="3팀">🟣 3팀</option>
+        </select>
+      </div>
+    </div>
+    <div class="panel dt-filter">
       <div class="ptitle">📍 행정동</div>
       <div class="filter-row">
         <span class="fbtn fall active" id="dbtn-all" onclick="toggleDong('all')">전체</span>
@@ -129,7 +150,7 @@ h1{font-size:14px;font-weight:600}
 
       </div>
     </div>
-    <div class="panel">
+    <div class="panel dt-filter">
       <div class="ptitle">👥 조사팀</div>
       <div class="filter-row">
         <span class="fbtn fall active" id="tbtn-all" onclick="toggleTeam('all')">전체</span>
@@ -273,9 +294,41 @@ function setMemo(seq,text){
   sbSetMemo(seq, d.name||'', d.team||'', text);
 }
 
+// ── 메모 입력 UI (팝업 내 textarea 연동) ──
+const memoTimers={};
+function onMemoInput(idx,ta){
+  let v=ta.value;
+  if(v.length>200){v=v.slice(0,200);ta.value=v;}
+  const lenEl=document.getElementById('memoLen-'+idx);
+  if(lenEl)lenEl.textContent=v.length+'/200자';
+  const st=document.getElementById('memoStatus-'+idx);
+  if(st){st.textContent='입력 중...';st.style.color='#94a3b8';}
+  clearTimeout(memoTimers[idx]);
+  memoTimers[idx]=setTimeout(()=>saveMemoNow(idx,true),800);
+}
+function saveMemoNow(idx,auto){
+  const ta=document.getElementById('memo-'+idx);
+  if(!ta)return;
+  clearTimeout(memoTimers[idx]);
+  setMemo(RAW[idx].seq,ta.value);
+  const st=document.getElementById('memoStatus-'+idx);
+  if(st){st.textContent=ta.value.trim()?'✓ 저장됨':'';st.style.color='#22c55e';}
+  if(!auto)showToast('📝 메모 저장','ok');
+}
+function deleteMemo(idx){
+  const ta=document.getElementById('memo-'+idx);
+  if(!ta)return;
+  clearTimeout(memoTimers[idx]);
+  ta.value='';
+  setMemo(RAW[idx].seq,'');
+  const lenEl=document.getElementById('memoLen-'+idx);
+  if(lenEl)lenEl.textContent='0/200자';
+  const st=document.getElementById('memoStatus-'+idx);
+  if(st){st.textContent='삭제됨';st.style.color='#dc2626';}
+  showToast('🗑 메모 삭제','ok');
+}
 
 // ── Supabase 메모 동기화 ──
-const MEMO_TABLE = 'apt_check_memo';
 
 async function sbLoadMemos(){
   try{
@@ -361,7 +414,7 @@ function applyDoneState(idx,isDone){
 }
 function updateDoneCount(){updateCounts();}
 
-function cleanRoad(r){r=r.trim();r=r.replace(/\s*[（(（].*/,'');r=r.replace(/\s+[가-힣]{2,}.+$/,'');r=r.replace(/\s+\d+동$/).replace(/\s+\d+호$/,'');return r.trim();}
+function cleanRoad(r){r=r.trim();r=r.replace(/\s*[（(（].*/,'');r=r.replace(/\s+[가-힣]{2,}.+$/,'');r=r.replace(/\s+\d+동$/,'').replace(/\s+\d+호$/,'');return r.trim();}
 function cleanJibun(a){a=a.replace(/\s+/g,' ').trim();a=a.replace(/\s*외\s*\d+필지.*/,'');a=a.replace(/(\d+-\d+)\s*산$/,'산$1');a=a.replace(/(\d+)-0\b/,'$1');a=a.replace(/\s*[,(（*].*/,'');return a.trim();}
 
 async function kakaoAddr(q,key){const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(q)}&size=1`,{headers:{Authorization:`KakaoAK ${key}`}});if(!r.ok)return null;const d=await r.json();return d.documents?.[0]?{lat:+d.documents[0].y,lng:+d.documents[0].x}:null;}
@@ -436,20 +489,22 @@ async function startLoad(){
   showToast('서버에서 완료 현황 불러오는 중...','');
   const [doneMapInit]=await Promise.all([sbLoadDone(),sbLoadMemos()]);
   const cache=loadCache();let ok=0,fail=0;
+  const elPgFill=document.getElementById('pgFill'),elPgLabel=document.getElementById('pgLabel'),
+        elTotal=document.getElementById('sTotal'),elOk=document.getElementById('sOk'),elFail=document.getElementById('sFail');
   document.getElementById('listEl').innerHTML='';
   for(let i=0;i<RAW.length;i++){
     const d=RAW[i];
-    document.getElementById('pgFill').style.width=((i+1)/RAW.length*100)+'%';
-    document.getElementById('pgLabel').textContent=`${i+1}/${RAW.length} [${d.team}] ${d.name}`;
-    document.getElementById('sTotal').textContent=i+1;
+    elPgFill.style.width=((i+1)/RAW.length*100)+'%';
+    elPgLabel.textContent=`${i+1}/${RAW.length} [${d.team}] ${d.name}`;
+    elTotal.textContent=i+1;
     const ck=String(d.seq);let geo=null;
     if(cache[ck]){geo=cache[ck]==='fail'?null:cache[ck];}
     else{try{geo=await geocodeOne(d,restKey);}catch{}cache[ck]=geo||'fail';if(i%10===0)saveCache(cache);await sleep(80);}
     geocoded[i]=geo;
     if(geo){ok++;addMarker(i,geo.lat,geo.lng,d,doneMapInit);}else fail++;
     renderItem(d,i,!!geo,doneMapInit);
-    document.getElementById('sOk').textContent=ok;
-    document.getElementById('sFail').textContent=fail;
+    elOk.textContent=ok;
+    elFail.textContent=fail;
   }
   saveCache(cache);
   document.getElementById('pgWrap').style.display='none';
@@ -500,7 +555,7 @@ function addMarker(idx,lat,lng,d,_doneMap){
           style="width:100%;height:68px;border:1px solid #e2e8f0;border-radius:6px;padding:6px 8px;font-size:11px;resize:vertical;outline:none;font-family:sans-serif;color:#334155;background:#f8fafc;box-sizing:border-box"
           onfocus="this.style.borderColor='#3b82f6'"
           onblur="this.style.borderColor='#e2e8f0'"
-        >${getMemo(d.seq)}</textarea>
+        >${esc(getMemo(d.seq))}</textarea>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px;gap:4px">
           <span id="memoLen-${idx}" style="font-size:9px;color:#cbd5e1">${getMemo(d.seq).length}/200자</span>
           <div style="display:flex;gap:4px">
@@ -549,9 +604,11 @@ function renderItem(d,i,ok,_doneMap){
   div.addEventListener('click',()=>{
     setActive(i);
     if(geocoded[i]&&kakaoMap){
-      // 모바일이면 지도로 자동 전환
-      if(window.innerWidth<=600&&!mobMapMode){mobMapMode=true;document.querySelector('.layout').classList.add('mob-map-active');document.getElementById('mobToggle').textContent='📋 목록 보기';setTimeout(()=>kakaoMap.relayout(),120);}
-      kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(geocoded[i].lat,geocoded[i].lng));if(overlays[i]){if(iwOpen)iwOpen.setMap(null);overlays[i].iw.setMap(kakaoMap);iwOpen=overlays[i].iw;}
+      const pos=new kakao.maps.LatLng(geocoded[i].lat,geocoded[i].lng);
+      const focus=(smooth)=>{kakaoMap.setLevel(3);smooth?kakaoMap.panTo(pos):kakaoMap.setCenter(pos);if(overlays[i]){if(iwOpen)iwOpen.setMap(null);overlays[i].iw.setMap(kakaoMap);iwOpen=overlays[i].iw;}};
+      // 모바일이면 지도로 자동 전환 (숨겨진 상태로 초기화된 지도를 relayout 후 중심 재설정)
+      if(window.innerWidth<=600&&!mobMapMode){mobMapMode=true;document.querySelector('.layout').classList.add('mob-map-active');document.getElementById('mobToggle').textContent='📋 목록 보기';setTimeout(()=>{kakaoMap.relayout();focus(false);},150);}
+      else focus(true);
     }
   });
   document.getElementById('listEl').appendChild(div);
@@ -559,8 +616,23 @@ function renderItem(d,i,ok,_doneMap){
 
 function isHidden(d){if(!filterDong.has('all')&&!filterDong.has(d.dong))return true;if(!filterTeam.has('all')&&!filterTeam.has(d.team))return true;if(filterText&&!d.name.toLowerCase().includes(filterText.toLowerCase()))return true;return false;}
 function applyFilter(){filterText=document.getElementById('searchInput').value.trim();RAW.forEach((d,i)=>{const el=document.getElementById('item-'+i);if(!el)return;const hide=isHidden(d);el.classList.toggle('hidden',hide);if(overlays[i])overlays[i].overlay.setMap(hide?null:kakaoMap);});updateCounts();applyExclFilter();}
-function toggleDong(g){if(g==='all')filterDong=new Set(['all']);else{filterDong.delete('all');filterDong.has(g)?filterDong.delete(g):filterDong.add(g);if(filterDong.size===0)filterDong=new Set(['all']);}const isAll=filterDong.has('all');document.getElementById('dbtn-all').classList.toggle('active',isAll);document.getElementById('dbtn-독산동')?.classList.toggle('active',!isAll&&filterDong.has('독산동'));document.getElementById('dbtn-가산동')?.classList.toggle('active',!isAll&&filterDong.has('가산동'));applyFilter();}
-function toggleTeam(g){if(g==='all')filterTeam=new Set(['all']);else{filterTeam.delete('all');filterTeam.has(g)?filterTeam.delete(g):filterTeam.add(g);if(filterTeam.size===0)filterTeam=new Set(['all']);}const isAll=filterTeam.has('all');document.getElementById('tbtn-all').classList.toggle('active',isAll);document.getElementById('tbtn-1팀')?.classList.toggle('active',!isAll&&filterTeam.has('1팀'));document.getElementById('tbtn-2팀')?.classList.toggle('active',!isAll&&filterTeam.has('2팀'));document.getElementById('tbtn-3팀')?.classList.toggle('active',!isAll&&filterTeam.has('3팀'));applyFilter();}
+// 알약 버튼(데스크톱)과 드롭다운(모바일) 상태를 동시에 반영
+function syncFilterButtons(){
+  const dAll=filterDong.has('all');
+  document.getElementById('dbtn-all').classList.toggle('active',dAll);
+  document.getElementById('dbtn-독산동')?.classList.toggle('active',!dAll&&filterDong.has('독산동'));
+  document.getElementById('dbtn-가산동')?.classList.toggle('active',!dAll&&filterDong.has('가산동'));
+  const tAll=filterTeam.has('all');
+  document.getElementById('tbtn-all').classList.toggle('active',tAll);
+  ['1팀','2팀','3팀'].forEach(t=>document.getElementById('tbtn-'+t)?.classList.toggle('active',!tAll&&filterTeam.has(t)));
+  const sd=document.getElementById('selDong');if(sd)sd.value=dAll?'all':([...filterDong].find(v=>v!=='all')||'all');
+  const st=document.getElementById('selTeam');if(st)st.value=tAll?'all':([...filterTeam].find(v=>v!=='all')||'all');
+}
+function toggleDong(g){if(g==='all')filterDong=new Set(['all']);else{filterDong.delete('all');filterDong.has(g)?filterDong.delete(g):filterDong.add(g);if(filterDong.size===0)filterDong=new Set(['all']);}syncFilterButtons();applyFilter();}
+function toggleTeam(g){if(g==='all')filterTeam=new Set(['all']);else{filterTeam.delete('all');filterTeam.has(g)?filterTeam.delete(g):filterTeam.add(g);if(filterTeam.size===0)filterTeam=new Set(['all']);}syncFilterButtons();applyFilter();}
+// 드롭다운 선택(단일 선택)
+function setDong(val){filterDong=val==='all'?new Set(['all']):new Set([val]);syncFilterButtons();applyFilter();}
+function setTeam(val){filterTeam=val==='all'?new Set(['all']):new Set([val]);syncFilterButtons();applyFilter();}
 function updateCounts(){
   const vis=RAW.filter(d=>!filterText||d.name.toLowerCase().includes(filterText.toLowerCase()));
   (el=>{if(el)el.textContent=vis.filter(d=>d.dong==='독산동').length})(document.getElementById('dcnt-독산동'));(el=>{if(el)el.textContent=vis.filter(d=>d.dong==='가산동').length})(document.getElementById('dcnt-가산동'));
@@ -646,7 +718,7 @@ function openRvFromPopup(latLng){lastIw=iwOpen;closeIw();openRvAt(latLng);}
 function closeRv(){document.getElementById('rvPanel').style.display='none';setRvMode(false);const tb=document.getElementById('mapToolbar');if(tb)tb.style.top='10px';if(lastIw&&kakaoMap){lastIw.setMap(kakaoMap);iwOpen=lastIw;lastIw=null;}minimapOn=false;const mm=document.getElementById('rvMinimap');if(mm)mm.style.display='none';const btn=document.getElementById('btnMinimap');if(btn){btn.style.background='var(--sur2)';btn.style.color='var(--tx)';}}
 
 function toggleSat(){satMode=!satMode;const btn=document.getElementById('btnSat');if(satMode){kakaoMap.setMapTypeId(kakao.maps.MapTypeId.HYBRID);btn.classList.add('on-sat');btn.textContent='🗺️ 일반';}else{kakaoMap.setMapTypeId(kakao.maps.MapTypeId.ROADMAP);btn.classList.remove('on-sat');btn.textContent='🛰️ 위성';}}
-function toggleMobView(){mobMapMode=!mobMapMode;const layout=document.querySelector('.layout'),btn=document.getElementById('mobToggle');if(mobMapMode){layout.classList.add('mob-map-active');btn.textContent='📋 목록 보기';if(kakaoMap)setTimeout(()=>kakaoMap.relayout(),100);}else{layout.classList.remove('mob-map-active');btn.textContent='🗺️ 지도 보기';}}
+function toggleMobView(){mobMapMode=!mobMapMode;const layout=document.querySelector('.layout'),btn=document.getElementById('mobToggle');if(mobMapMode){layout.classList.add('mob-map-active');btn.textContent='📋 목록 보기';if(kakaoMap)setTimeout(()=>{kakaoMap.relayout();if(activeIdx>=0&&geocoded[activeIdx]){kakaoMap.setLevel(3);kakaoMap.setCenter(new kakao.maps.LatLng(geocoded[activeIdx].lat,geocoded[activeIdx].lng));}else fitAll();},150);}else{layout.classList.remove('mob-map-active');btn.textContent='🗺️ 지도 보기';}}
 
 function openNaviFrom(toLat,toLng,toName,key){const st=STATIONS[key]||STATIONS.fs;const url='https://map.kakao.com/link/from/'+encodeURIComponent(st.name)+','+st.lat+','+st.lng+'/to/'+encodeURIComponent(toName)+','+toLat+','+toLng;window.open(url,'_blank');}
 
@@ -695,8 +767,8 @@ function switchTab(tab){
   }
 }
 function toggleEdu(){const btn=document.getElementById('btnEdu');if(eduOn){eduOverlays.forEach(o=>o.setMap(null));eduOn=false;btn.classList.remove('on');btn.textContent='🏫 교육';}else{eduOn=true;if(!eduLoaded)loadEduMarkers();else{eduOverlays.forEach(o=>o.setMap(kakaoMap));btn.classList.add('on');btn.textContent='🏫 교육ON';}}}
-function renderEduList(){const listEl=document.getElementById('eduListEl');listEl.innerHTML='';EDU_RAW.forEach((d,i)=>{if(!d._lat)return;const icon=EDU_TYPE_ICON[d.detail]||'🏫';const div=document.createElement('div');div.className='item';div.style.borderLeft='3px solid #0ea5e9';div.innerHTML=`<div class="ibody"><div class="iname">${icon} ${esc(d.name)}</div><div class="isub">${d.detail} · ${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div></div>`;div.addEventListener('click',()=>{if(kakaoMap){kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(d._lat,d._lng));if(eduIws[i]){if(iwOpen)iwOpen.setMap(null);eduIws[i].setMap(kakaoMap);iwOpen=eduIws[i];}}});listEl.appendChild(div);});}
-async function loadEduMarkers(){const btn=document.getElementById('btnEdu');btn.textContent='⏳ 로딩 중...';btn.style.pointerEvents='none';const headers={Authorization:`KakaoAK ${REST_KEY}`};let ok=0;for(const d of EDU_RAW){try{const icon=EDU_TYPE_ICON[d.detail]||'🏫';let geo=null;const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(d.addr)}&size=1`,{headers});const j=await r.json();if(j.documents?.[0])geo={lat:+j.documents[0].y,lng:+j.documents[0].x};if(!geo){const r2=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('금천구 '+d.name)}&size=1`,{headers});const j2=await r2.json();if(j2.documents?.[0])geo={lat:+j2.documents[0].y,lng:+j2.documents[0].x};}if(!geo)continue;d._lat=geo.lat;d._lng=geo.lng;const el=document.createElement('div');el.className='edu-marker';el.textContent=icon;const iwEl=document.createElement('div');iwEl.style.cssText='background:#fff;border-radius:8px;padding:10px 14px;min-width:200px;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-family:sans-serif';iwEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;font-weight:700;color:#0ea5e9;background:#e0f2fe;padding:2px 7px;border-radius:10px">🏫 교육시설</span><span style="cursor:pointer;color:#999;font-size:16px" onclick="closeIw()">✕</span></div><div style="font-size:13px;font-weight:700;margin-bottom:5px;color:#111">${esc(d.name)}</div><div style="font-size:11px;color:#555;margin-bottom:2px">${icon} ${d.detail}</div><div style="font-size:10px;color:#999;margin-bottom:8px">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div><div style="border-top:1px solid #f1f5f9;padding-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px"><button onclick="openRvFromPopup(new kakao.maps.LatLng(${geo.lat},${geo.lng}))" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 로드뷰</button><button onclick="openNaviFrom(${geo.lat},${geo.lng},'${d.name.replace(/'/g,'').substring(0,15)}','fs')" style="padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:11px;cursor:pointer;background:#fffbeb;color:#92400e;font-weight:600">🗺️ 길찾기</button></div>`;const iw=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:iwEl,yAnchor:1.4,zIndex:100});el.addEventListener('click',()=>{if(iwOpen)iwOpen.setMap(null);if(activeMarkerEl)activeMarkerEl.classList.remove('active-mk');iw.setMap(kakaoMap);iwOpen=iw;kakaoMap.panTo(new kakao.maps.LatLng(geo.lat,geo.lng));});const ov=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:el,zIndex:15});ov.setMap(kakaoMap);eduOverlays.push(ov);eduIws.push(iw);ok++;}catch(e){}await sleep(80);}eduLoaded=true;btn.style.pointerEvents='auto';renderEduList();showToast(`🏫 교육시설 ${ok}개 표시`,'ok');btn.textContent='🏫 교육ON';btn.classList.add('on');}
+function renderEduList(){const listEl=document.getElementById('eduListEl');listEl.innerHTML='';EDU_RAW.forEach((d,i)=>{if(!d._lat)return;const icon=EDU_TYPE_ICON[d.detail]||'🏫';const div=document.createElement('div');div.className='item';div.style.borderLeft='3px solid #0ea5e9';div.innerHTML=`<div class="ibody"><div class="iname">${icon} ${esc(d.name)}</div><div class="isub">${d.detail} · ${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div></div>`;div.addEventListener('click',()=>{if(kakaoMap){kakaoMap.setLevel(3);kakaoMap.panTo(new kakao.maps.LatLng(d._lat,d._lng));if(d._iw){if(iwOpen)iwOpen.setMap(null);d._iw.setMap(kakaoMap);iwOpen=d._iw;}}});listEl.appendChild(div);});}
+async function loadEduMarkers(){const btn=document.getElementById('btnEdu');btn.textContent='⏳ 로딩 중...';btn.style.pointerEvents='none';const headers={Authorization:`KakaoAK ${REST_KEY}`};let ok=0;for(const d of EDU_RAW){try{const icon=EDU_TYPE_ICON[d.detail]||'🏫';let geo=null;const r=await fetch(`https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(d.addr)}&size=1`,{headers});const j=await r.json();if(j.documents?.[0])geo={lat:+j.documents[0].y,lng:+j.documents[0].x};if(!geo){const r2=await fetch(`https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent('금천구 '+d.name)}&size=1`,{headers});const j2=await r2.json();if(j2.documents?.[0])geo={lat:+j2.documents[0].y,lng:+j2.documents[0].x};}if(!geo)continue;d._lat=geo.lat;d._lng=geo.lng;const el=document.createElement('div');el.className='edu-marker';el.textContent=icon;const iwEl=document.createElement('div');iwEl.style.cssText='background:#fff;border-radius:8px;padding:10px 14px;min-width:200px;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.2);font-family:sans-serif';iwEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:9px;font-weight:700;color:#0ea5e9;background:#e0f2fe;padding:2px 7px;border-radius:10px">🏫 교육시설</span><span style="cursor:pointer;color:#999;font-size:16px" onclick="closeIw()">✕</span></div><div style="font-size:13px;font-weight:700;margin-bottom:5px;color:#111">${esc(d.name)}</div><div style="font-size:11px;color:#555;margin-bottom:2px">${icon} ${d.detail}</div><div style="font-size:10px;color:#999;margin-bottom:8px">${esc((d.addr||'').replace('서울특별시 금천구 ',''))}</div><div style="border-top:1px solid #f1f5f9;padding-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px"><button onclick="openRvFromPopup(new kakao.maps.LatLng(${geo.lat},${geo.lng}))" style="padding:6px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;cursor:pointer;background:#f8fafc;color:#334155">🔭 로드뷰</button><button onclick="openNaviFrom(${geo.lat},${geo.lng},'${d.name.replace(/'/g,'').substring(0,15)}','fs')" style="padding:6px;border:1px solid #fde68a;border-radius:6px;font-size:11px;cursor:pointer;background:#fffbeb;color:#92400e;font-weight:600">🗺️ 길찾기</button></div>`;const iw=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:iwEl,yAnchor:1.4,zIndex:100});el.addEventListener('click',()=>{if(iwOpen)iwOpen.setMap(null);if(activeMarkerEl)activeMarkerEl.classList.remove('active-mk');iw.setMap(kakaoMap);iwOpen=iw;kakaoMap.panTo(new kakao.maps.LatLng(geo.lat,geo.lng));});const ov=new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(geo.lat,geo.lng),content:el,zIndex:15});ov.setMap(kakaoMap);d._iw=iw;eduOverlays.push(ov);eduIws.push(iw);ok++;}catch(e){}await sleep(80);}eduLoaded=true;btn.style.pointerEvents='auto';renderEduList();showToast(`🏫 교육시설 ${ok}개 표시`,'ok');btn.textContent='🏫 교육ON';btn.classList.add('on');}
 
 function loadSheetJS(){return new Promise((resolve,reject)=>{if(window.XLSX){resolve();return;}const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=resolve;s.onerror=()=>{const s2=document.createElement('script');s2.src='https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';s2.onload=resolve;s2.onerror=reject;document.head.appendChild(s2);};document.head.appendChild(s);});}
 async function exportExcel(){
