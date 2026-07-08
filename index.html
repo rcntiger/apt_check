@@ -79,6 +79,13 @@ h1{font-size:14px;font-weight:600}
 .mob-sel:focus{border-color:var(--ac)}
 .mob-sel option{color:#111;background:#fff}
 @media(max-width:600px){.mob-filter{display:block}.panel.dt-filter{display:none}}
+/* 모바일: 전체/변환/실패/조사완료 + 진행바를 한 블록으로 통합 */
+.mob-stats{display:none}
+.mob-stats-bar{height:8px;background:var(--sur2);border-radius:4px;overflow:hidden}
+.mob-stats-fill{height:100%;width:0;background:#22c55e;border-radius:4px;transition:width .3s}
+.mob-stats-label{font-size:11px;color:var(--mt);margin-top:5px;text-align:center}
+.mob-stats-label b{font-weight:700}
+@media(max-width:600px){.dt-stats{display:none}.mob-stats{display:block;margin-top:6px}}
 /* 정렬 드롭다운 (검색창 오른쪽) — PC·모바일 공통 */
 .mob-sort{display:block;flex:0 0 auto;width:auto;background:var(--sur2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:0 8px;font-size:12px;font-weight:600;outline:none;cursor:pointer}
 .mob-sort:focus{border-color:var(--ac)}
@@ -123,17 +130,21 @@ h1{font-size:14px;font-weight:600}
     <div class="panel">
       <div class="pgwrap" id="pgWrap"><div class="pgfill" id="pgFill"></div></div>
       <div class="pglabel" id="pgLabel"></div>
-      <div class="stats-row">
+      <div class="stats-row dt-stats">
         <div class="stat"><div class="n" id="sTotal" style="color:var(--ac)">0</div><div class="l">전체</div></div>
         <div class="stat"><div class="n" id="sOk" style="color:var(--lo)">0</div><div class="l">변환</div></div>
         <div class="stat"><div class="n" id="sFail" style="color:var(--hi)">0</div><div class="l">실패</div></div>
         <div class="stat"><div class="n" id="doneCount" style="color:#22c55e">0</div><div class="l">조사완료</div></div>
       </div>
-      <div style="margin-top:8px">
+      <div class="dt-stats" style="margin-top:8px">
         <div style="height:6px;background:var(--sur2);border-radius:3px;overflow:hidden">
           <div id="pgFillDone" style="height:100%;background:#22c55e;border-radius:3px;transition:width .3s;width:0%"></div>
         </div>
         <div id="pgLabelDone" style="font-size:10px;color:var(--mt);margin-top:3px;text-align:center">전체 0/0 (0%)</div>
+      </div>
+      <div class="mob-stats" id="mobStats">
+        <div class="mob-stats-bar"><div class="mob-stats-fill" id="mobStatsFill"></div></div>
+        <div class="mob-stats-label" id="mobStatsLabel">전체 0 · 변환 0 · 실패 0 · 완료 0 (0%)</div>
       </div>
       <button onclick="exportExcel()" style="width:100%;margin-top:8px;padding:7px;background:#22c55e;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">📊 점검결과 엑셀 출력</button>
     </div>
@@ -685,6 +696,15 @@ function updateCounts(){
   if(pgFill)pgFill.style.width=pct+'%';
   const label=isFiltered?([...filterTeam].filter(t=>t!=='all').join('+')||[...filterDong].filter(t=>t!=='all').join('+')):'전체';
   if(pgLbl)pgLbl.textContent=label+' '+doneN+'/'+total+' ('+pct+'%)';
+  syncMobStats(total,doneN,pct,label);
+}
+// 모바일 통합 통계(전체·변환·실패·완료 + 진행바) 갱신
+function syncMobStats(total,doneN,pct,label){
+  const lbl=document.getElementById('mobStatsLabel');if(!lbl)return;
+  const ok=document.getElementById('sOk')?.textContent||'0';
+  const fail=document.getElementById('sFail')?.textContent||'0';
+  const fill=document.getElementById('mobStatsFill');if(fill)fill.style.width=pct+'%';
+  lbl.innerHTML=`${label} <b style="color:var(--ac)">${total}</b> · 변환 <b style="color:var(--lo)">${ok}</b> · 실패 <b style="color:var(--hi)">${fail}</b> · 완료 <b style="color:#22c55e">${doneN}</b> (${pct}%)`;
 }
 
 function setActive(idx){if(activeIdx>=0)document.getElementById(`item-${activeIdx}`)?.classList.remove('active');activeIdx=idx;const el=document.getElementById(`item-${idx}`);if(el){el.classList.add('active');el.scrollIntoView({block:'nearest'});}}
